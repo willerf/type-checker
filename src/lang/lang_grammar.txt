@@ -1,0 +1,47 @@
+s BOFS fns EOFS
+fns fn fns
+fns fn
+fn FN ID LPAREN optparams RPAREN stmtblock
+optparams params
+optparams
+params vardef COMMA params
+params vardef
+vardef ID
+stmtblock LBRACE stmts RBRACE
+stmts stmt stmts
+stmts
+stmt LET vardef ASSIGN expr SEMI
+stmt IF LPAREN expr RPAREN stmtblock ELSE stmtblock
+stmt RET expr SEMI
+expr p1
+p1 p2
+p1 p1 OR p2
+p2 p3
+p2 p2 AND p3
+p3 p4
+p3 p3 EQ p4
+p3 p3 NE p4
+p4 p5
+p4 p4 LT p5
+p4 p4 GT p5
+p4 p4 LE p5
+p4 p4 GE p5
+p5 p6
+p5 p5 PLUS p6
+p5 p5 MINUS p6
+p6 p7
+p6 p6 STAR p7
+p6 p6 SLASH p7
+p6 p6 PCT p7
+p7 p8
+p7 NOT p8
+p8 ID
+p8 NUM
+p8 TRUE
+p8 FALSE
+p8 LPAREN expr RPAREN
+p8 ID LPAREN optargs RPAREN
+optargs args
+optargs
+args expr COMMA args
+args expr
