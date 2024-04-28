@@ -118,9 +118,9 @@ Grammar make_nex_lang_grammar() {
     return nex_lang_grammar;
 }
 
-ASTNode parse(std::span<Token> input) {
+ParseNode parse(std::span<Token> input) {
     Grammar grammar = nex_lang_grammar;
-    std::optional<ASTNode> result = parse_earley(input, grammar);
+    std::optional<ParseNode> result = parse_earley(input, grammar);
     if (result) {
         return result.value();
     }

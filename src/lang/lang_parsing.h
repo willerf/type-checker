@@ -11,5 +11,5 @@
 struct Token;
 
 Grammar make_lang_grammar();
-ASTNode parse(std::span<Token> input);
+ParseNode parse(std::span<Token> input);
 

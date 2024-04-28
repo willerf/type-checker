@@ -23,5 +23,5 @@ struct MemoHash {
     int64_t operator()(const MemoKey& memo_key) const;
 };
 
-using MemoValue = std::optional<std::vector<ASTNode>>;
+using MemoValue = std::optional<std::vector<ParseNode>>;
 using MemoMap = std::unordered_map<MemoKey, MemoValue, MemoHash>;

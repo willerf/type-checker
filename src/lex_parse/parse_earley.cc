@@ -20,7 +20,7 @@ struct CompleteEarleyItem {
     int64_t end;
 };
 
-static std::optional<std::vector<ASTNode>> search_sets(
+static std::optional<std::vector<ParseNode>> search_sets(
     std::span<State> lhs,
     int64_t from,
     int64_t length,
@@ -39,7 +39,7 @@ static std::optional<std::vector<ASTNode>> search_sets(
         if (length) {
             return std::nullopt;
         } else {
-            return std::vector<ASTNode> {};
+            return std::vector<ParseNode> {};
         }
     } else if (std::holds_alternative<Terminal>(lhs.front())) {
         if (input[from].kind == std::get<Terminal>(lhs.front())) {
@@ -55,7 +55,7 @@ static std::optional<std::vector<ASTNode>> search_sets(
             );
             memo_map[MemoKey {lhs.subspan(1), from + 1, length - 1}] = sub_tree;
             if (sub_tree) {
-                std::vector<ASTNode> result = {ASTNode {
+                std::vector<ParseNode> result = {ParseNode {
                     input[from].kind,
                     input[from].lexeme,
                     {},
@@ -79,8 +79,8 @@ static std::optional<std::vector<ASTNode>> search_sets(
             );
             memo_map[MemoKey {prod.rhs, from, length}] = sub_tree;
             if (sub_tree) {
-                return std::vector<ASTNode> {
-                    ASTNode {lhs.front(), "", sub_tree.value()}};
+                return std::vector<ParseNode> {
+                    ParseNode {lhs.front(), "", sub_tree.value()}};
             }
         }
     } else {
@@ -116,7 +116,7 @@ static std::optional<std::vector<ASTNode>> search_sets(
                         item.end,
                         length - (item.end - from)}] = sub_tree2;
                     if (sub_tree2) {
-                        std::vector<ASTNode> result = sub_tree1.value();
+                        std::vector<ParseNode> result = sub_tree1.value();
                         result.insert(
                             result.end(),
                             sub_tree2->begin(),
@@ -138,7 +138,7 @@ struct EarleyItem {
     bool operator==(const EarleyItem&) const = default;
 };
 
-std::optional<ASTNode> parse_earley(std::span<Token> input, Grammar& grammar) {
+std::optional<ParseNode> parse_earley(std::span<Token> input, Grammar& grammar) {
     std::vector<std::vector<EarleyItem>> earley_sets;
     earley_sets.push_back({});
 
@@ -244,7 +244,7 @@ std::optional<ASTNode> parse_earley(std::span<Token> input, Grammar& grammar) {
 
         MemoMap memo_map;
         std::vector<State> lhs = {grammar.start};
-        std::optional<std::vector<ASTNode>> result = search_sets(
+        std::optional<std::vector<ParseNode>> result = search_sets(
             lhs,
             0,
             input.size(),

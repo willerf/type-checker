@@ -1,6 +1,6 @@
 #include "ast_node.h"
 
-std::vector<State> ASTNode::get_production() {
+std::vector<State> ParseNode::get_production() {
     std::vector<State> result = {state};
     for (auto& child : children) {
         result.push_back(child.state);
@@ -8,7 +8,7 @@ std::vector<State> ASTNode::get_production() {
     return result;
 }
 
-std::string ASTNode::to_string(int depth) {
+std::string ParseNode::to_string(int depth) {
     std::string indent = std::string(depth, ' ');
     std::string result;
 
