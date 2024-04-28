@@ -96,7 +96,7 @@ static std::optional<Terminal> transition_func(Terminal curr_state, char c) {
     return std::nullopt;
 }
 
-DFA make_nex_lang_dfa() {
+DFA make_lang_dfa() {
     std::string alphabet_str =
         "<>=+-_*/%(){}[],.;:!&| \t\n\r\'\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     std::set<char> alphabet(alphabet_str.begin(), alphabet_str.end());
@@ -139,7 +139,7 @@ static const std::map<std::string, Terminal> keywords = {
 };
 
 std::vector<Token> scan(std::string_view input) {
-    DFA dfa = make_nex_lang_dfa();
+    DFA dfa = make_lang_dfa();
 
     std::vector<Token> tokens = maximal_munch_scan(input, dfa);
     for (auto& token : tokens) {

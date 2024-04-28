@@ -14,6 +14,7 @@ add_library(type_checker_lib STATIC
     src/lex_parse/parse_earley.cc
     src/lex_parse/scanning.cc
     src/lex_parse/token.cc
+    src/type_check.cc
 )
 
 target_include_directories(type_checker_lib PUBLIC
