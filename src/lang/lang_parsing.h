@@ -3,7 +3,7 @@
 #include <string_view>
 #include <vector>
 
-#include "ast_node.h"
+#include "parse_node.h"
 #include "dfa.h"
 #include "grammar.h"
 #include "token.h"

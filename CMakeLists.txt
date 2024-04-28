@@ -9,18 +9,24 @@ add_library(type_checker_lib STATIC
     src/lang/lang_parsing.cc
     src/lang/lang_scanning.cc
     src/lang/state.cc
-    src/lex_parse/ast_node.cc
     src/lex_parse/memo_map.cc
     src/lex_parse/parse_earley.cc
+    src/lex_parse/parse_node.cc
     src/lex_parse/scanning.cc
     src/lex_parse/token.cc
+    src/post_processing/extract_fns.cc
+    src/program_representation/stmt_block_node.cc
+    src/transformations/visitor.cc
     src/type_check.cc
 )
 
 target_include_directories(type_checker_lib PUBLIC
-    src
     src/lex_parse
     src/lang
+    src/post_processing
+    src/program_representation
+    src/transformations
+    src
 )
 
 add_executable(typecheck src/main.cc)

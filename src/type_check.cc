@@ -20,7 +20,7 @@ void type_check(std::vector<std::string> input_file_paths) {
         buffer << file.rdbuf();
         std::string input = buffer.str();
         auto tokens = scan(input);
-        auto ast_node = parse(tokens);
+        auto parse_node = parse(tokens);
     }
 
 }

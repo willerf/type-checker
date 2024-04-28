@@ -5,7 +5,7 @@
 #include <optional>
 #include <span>
 
-#include "ast_node.h"
+#include "parse_node.h"
 #include "grammar.h"
 #include "token.h"
 
