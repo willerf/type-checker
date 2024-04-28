@@ -1,13 +1,17 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #include <ostream>
 #include <string>
 
-#include "token_type.h"
+#include "dfa.h"
+
+enum class Terminal;
 
 struct Token {
-    TokenType kind;
+    Terminal kind;
     std::string lexeme;
     size_t line_no = 0;
 

@@ -6,8 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(type_checker_lib STATIC
-    src/lang/token_type.cc
+    src/lang/lang_parsing.cc
+    src/lang/lang_scanning.cc
+    src/lang/state.cc
+    src/lex_parse/ast_node.cc
+    src/lex_parse/memo_map.cc
+    src/lex_parse/parse_earley.cc
     src/lex_parse/scanning.cc
+    src/lex_parse/token.cc
 )
 
 target_include_directories(type_checker_lib PUBLIC

@@ -8,7 +8,7 @@ bool Token::operator==(const Token& other) const {
 }
 
 std::ostream& operator<<(std::ostream& out, const Token& token) {
-    out << "(" << to_string(token.kind) << ", " << token.lexeme << ")";
+    out << "(" << state::to_string(token.kind) << ", " << token.lexeme << ")";
     return out;
 }
 

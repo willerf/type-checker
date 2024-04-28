@@ -14,13 +14,13 @@
 #include "dfa.h"
 
 Token scan_one(std::string_view input, DFA& dfa, size_t line_no) {
-    TokenType curr_state = dfa.init_state;
-    std::optional<std::pair<TokenType, std::string_view>> last_accepting =
+    Terminal curr_state = dfa.init_state;
+    std::optional<std::pair<Terminal, std::string_view>> last_accepting =
         std::nullopt;
 
     for (size_t i = 0; i < input.length(); i++) {
         char c = input.at(i);
-        std::optional<TokenType> next_state = std::nullopt;
+        std::optional<Terminal> next_state = std::nullopt;
         if (dfa.alphabet.count(c)) {
             next_state = dfa.transition(curr_state, c);
         }
@@ -61,7 +61,7 @@ std::vector<Token> maximal_munch_scan(std::string_view input, DFA& dfa) {
         Token token = scan_one(rem, dfa, line_no);
         rem.remove_prefix(token.lexeme.length());
         token.line_no = line_no;
-        if (token.kind == TokenType::Newline) {
+        if (token.kind == Terminal::NEWLINE) {
             ++line_no;
         }
         tokens.push_back(token);

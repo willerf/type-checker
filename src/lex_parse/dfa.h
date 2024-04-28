@@ -7,13 +7,12 @@
 #include <set>
 #include <string>
 
-#include "token_type.h"
+#include "state.h"
 
 struct DFA {
     std::set<char> alphabet;
-    TokenType init_state;
-    std::set<TokenType> valid_states;
-    std::set<TokenType> accepting;
-    std::function<std::optional<TokenType>(TokenType, char)> transition;
+    Terminal init_state;
+    std::set<Terminal> valid_states;
+    std::set<Terminal> accepting;
+    std::function<std::optional<Terminal>(Terminal, char)> transition;
 };
-
