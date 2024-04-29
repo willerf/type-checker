@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 
+#include "extract_fns.h"
 #include "type_check.h"
 #include "lang_scanning.h"
 #include "lang_parsing.h"
@@ -21,6 +22,7 @@ void type_check(std::vector<std::string> input_file_paths) {
         std::string input = buffer.str();
         auto tokens = scan(input);
         auto parse_node = parse(tokens);
+        auto ast_node = extract_fns(parse_node);
     }
 
 }

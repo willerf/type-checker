@@ -1,10 +1,11 @@
 #pragma once
 
+#include "ast_node.h"
 #include "parse_node.h"
 
-void extract_fns(
+std::vector<std::shared_ptr<ASTNode>> extract_fns(
     ParseNode root
 );
-void extract_fn(
+std::shared_ptr<ASTNode> extract_fn(
     ParseNode root
 );
