@@ -81,12 +81,7 @@ std::vector<std::shared_ptr<ASTNode>> extract_stmts(
     std::vector<std::shared_ptr<ASTNode>> result;
 
     std::vector<State> prod = root.get_production();
-    if (prod == std::vector<State> {NonTerminal::stmts, NonTerminal::stmt}) {
-        // extract singular statement
-        ParseNode stmt = root.children.at(0);
-        result.push_back(extract_stmt(
-            stmt
-        ));
+    if (prod == std::vector<State> {NonTerminal::stmts}) {
     } else if (prod == std::vector<State> {NonTerminal::stmts, NonTerminal::stmt, NonTerminal::stmts}) {
         // extract code statement
         ParseNode stmt = root.children.at(0);
@@ -102,6 +97,10 @@ std::vector<std::shared_ptr<ASTNode>> extract_stmts(
 
         result.insert(result.end(), rest.begin(), rest.end());
     } else {
+        /*for (auto x : prod) {
+            std::cout << state::to_string(x) << " " << std::endl;
+        }
+        std::cout << std::endl;*/
         std::cerr << "Invalid production found while processing stmts."
                   << std::endl;
         exit(1);

@@ -18,6 +18,7 @@ add_library(type_checker_lib STATIC
     src/post_processing/extract_expr.cc
     src/post_processing/extract_fns.cc
     src/post_processing/extract_params.cc
+    src/post_processing/extract_s.cc
     src/post_processing/extract_stmts.cc
     src/post_processing/extract_vardef.cc
     src/program_representation/assign_node.cc
