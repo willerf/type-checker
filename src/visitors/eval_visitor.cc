@@ -7,10 +7,12 @@
 #include "fn_node.h"
 #include "if_node.h"
 #include "literal_node.h"
+#include "program_node.h"
 #include "ret_node.h"
 #include "stmt_block_node.h"
 #include "unary_expr_node.h"
 #include "var_access_node.h"
+#include "visitor.h"
 
 #include <iostream>
 #include <cassert>
@@ -148,6 +150,13 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
             break;
     }
     return [=](auto& m){ return val; };
+}
+
+std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
+    for (auto fn : node->fns) {
+        fn->accept(*this);
+    } 
+    return [](auto& m){ return 0; };
 }
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<RetNode> node) {

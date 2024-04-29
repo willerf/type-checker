@@ -23,12 +23,10 @@ void type_check(std::vector<std::string> input_file_paths) {
         std::string input = buffer.str();
         auto tokens = scan(input);
         auto parse_node = parse(tokens);
-        std::vector<std::shared_ptr<ASTNode>> nodes = extract_s(parse_node);
+        std::shared_ptr<ASTNode> program_node = extract_s(parse_node);
 
         EvalVisitor ev;
-        for (auto& node : nodes) {
-            node->accept(ev);
-        }
+        program_node->accept(ev);
         for (auto& [name, func] : ev.funcs) {
             if (name == "main") {
                 std::cout << "Result: " << func({}) << std::endl;

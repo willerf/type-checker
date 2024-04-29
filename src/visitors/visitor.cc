@@ -10,6 +10,7 @@
 #include "fn_node.h"
 #include "if_node.h"
 #include "literal_node.h"
+#include "program_node.h"
 #include "ret_node.h"
 #include "stmt_block_node.h"
 #include "unary_expr_node.h"
@@ -52,6 +53,13 @@ void Visitor<void>::visit(std::shared_ptr<IfNode> node) {
 
 template<>
 void Visitor<void>::visit(std::shared_ptr<LiteralNode> node) {
+}
+
+template<>
+void Visitor<void>::visit(std::shared_ptr<ProgramNode> node) {
+    for (auto fn : node->fns) {
+        fn->accept(*this);
+    }
 }
 
 template<>
@@ -129,6 +137,16 @@ template<>
 std::shared_ptr<ASTNode>
 Visitor<std::shared_ptr<ASTNode>>::visit(std::shared_ptr<LiteralNode> node) {
     return std::static_pointer_cast<ASTNode>(node);
+}
+
+template<>
+std::shared_ptr<ASTNode>
+Visitor<std::shared_ptr<ASTNode>>::visit(std::shared_ptr<ProgramNode> node) {
+    std::vector<std::shared_ptr<ASTNode>> result;
+    for (auto fn : node->fns) {
+        result.push_back(fn->accept(*this));
+    }
+    return make_program(result);
 }
 
 template<>

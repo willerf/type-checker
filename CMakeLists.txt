@@ -27,6 +27,7 @@ add_library(type_checker_lib STATIC
     src/program_representation/fn_node.cc
     src/program_representation/if_node.cc
     src/program_representation/literal_node.cc
+    src/program_representation/program_node.cc
     src/program_representation/ret_node.cc
     src/program_representation/stmt_block_node.cc
     src/program_representation/unary_expr_node.cc

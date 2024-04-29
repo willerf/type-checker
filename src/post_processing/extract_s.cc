@@ -4,12 +4,13 @@
 #include <cassert>
 #include "ast_node.h"
 #include "extract_fns.h"
+#include "program_node.h"
 
-std::vector<std::shared_ptr<ASTNode>> extract_s(
+std::shared_ptr<ASTNode> extract_s(
     ParseNode root
 ) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::s);
-    std::vector<std::shared_ptr<ASTNode>> result;
+    std::shared_ptr<ASTNode> result = nullptr;
 
     std::vector<State> prod = root.get_production();
     if (prod
@@ -21,7 +22,8 @@ std::vector<std::shared_ptr<ASTNode>> extract_s(
         // extract functions of program
 
         ParseNode fns = root.children.at(1);
-        result = extract_fns(fns);
+        auto fns_nodes = extract_fns(fns);
+        result = make_program(fns_nodes);
     } else {
         std::cerr << "Invalid production found while processing s."
                   << std::endl;
