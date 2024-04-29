@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "stmt_block_node.h"
+#include "fn_node.h"
 
 template<>
 void Visitor<void>::visit(std::shared_ptr<ASTNode> node) {}
@@ -15,6 +16,10 @@ void Visitor<void>::visit(std::shared_ptr<StmtBlockNode> node) {
     }
 }
 
+template<>
+void Visitor<void>::visit(std::shared_ptr<FnNode> node) {
+    node->stmts->accept(*this);
+}
 
 
 template<>
@@ -31,4 +36,11 @@ Visitor<std::shared_ptr<ASTNode>>::visit(std::shared_ptr<StmtBlockNode> node) {
         result.push_back(stmt->accept(*this));
     }
     return make_stmt_block(result);
+}
+
+template<>
+std::shared_ptr<ASTNode>
+Visitor<std::shared_ptr<ASTNode>>::visit(std::shared_ptr<FnNode> node) {
+    auto result = node->stmts->accept(*this); 
+    return make_fn(node->params, result);
 }

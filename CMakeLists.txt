@@ -16,6 +16,8 @@ add_library(type_checker_lib STATIC
     src/lex_parse/token.cc
     src/post_processing/extract_fns.cc
     src/program_representation/stmt_block_node.cc
+    src/program_representation/fn_node.cc
+    src/program_representation/variable.cc
     src/transformations/visitor.cc
     src/type_check.cc
 )
