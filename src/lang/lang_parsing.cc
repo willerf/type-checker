@@ -42,6 +42,7 @@ static const std::map<NonTerminal, std::vector<Production>> productions = {
     },
     {NonTerminal::stmt,
         {{NonTerminal::stmt, {Terminal::LET, NonTerminal::vardef, Terminal::ASSIGN, NonTerminal::expr, Terminal::SEMI}},
+        {NonTerminal::stmt, {Terminal::ID, Terminal::ASSIGN, NonTerminal::expr, Terminal::SEMI}},
         {NonTerminal::stmt, {Terminal::IF, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock, Terminal::ELSE, NonTerminal::stmtblock}},
         {NonTerminal::stmt, {Terminal::RET, NonTerminal::expr, Terminal::SEMI}}}
     },

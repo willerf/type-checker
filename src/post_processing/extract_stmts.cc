@@ -36,6 +36,21 @@ std::shared_ptr<ASTNode> extract_stmt(
         auto expr = extract_expr(expr_node);
 
         result = make_assign(var, expr);
+    } else if (prod
+        == std::vector<State> {
+            NonTerminal::stmt,
+            Terminal::ID,
+            Terminal::ASSIGN,
+            NonTerminal::expr,
+            Terminal::SEMI}) {
+        // extract variable declaration and assignment
+        ParseNode id = root.children.at(0);
+        std::string name = id.lexeme;
+
+        ParseNode expr_node = root.children.at(2);
+        auto expr = extract_expr(expr_node);
+
+        result = make_assign(Variable(name), expr);
     } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::IF, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock, Terminal::ELSE, NonTerminal::stmtblock}) {
         // extract if else statements
         ParseNode expr = root.children.at(2);
