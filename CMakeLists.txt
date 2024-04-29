@@ -32,7 +32,8 @@ add_library(type_checker_lib STATIC
     src/program_representation/unary_expr_node.cc
     src/program_representation/var_access_node.cc
     src/program_representation/variable.cc
-    src/transformations/visitor.cc
+    src/visitors/visitor.cc
+    src/visitors/eval_visitor.cc
     src/type_check.cc
 )
 
@@ -41,7 +42,7 @@ target_include_directories(type_checker_lib PUBLIC
     src/lang
     src/post_processing
     src/program_representation
-    src/transformations
+    src/visitors
     src
 )
 

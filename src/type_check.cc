@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 
+#include "eval_visitor.h"
 #include "extract_s.h"
 #include "type_check.h"
 #include "lang_scanning.h"
@@ -22,7 +23,17 @@ void type_check(std::vector<std::string> input_file_paths) {
         std::string input = buffer.str();
         auto tokens = scan(input);
         auto parse_node = parse(tokens);
-        auto ast_node = extract_s(parse_node);
+        std::vector<std::shared_ptr<ASTNode>> nodes = extract_s(parse_node);
+
+        EvalVisitor ev;
+        for (auto& node : nodes) {
+            node->accept(ev);
+        }
+        for (auto& [name, func] : ev.funcs) {
+            if (name == "main") {
+                std::cout << "Result: " << func({}) << std::endl;
+            }
+        }
     }
 
 }
