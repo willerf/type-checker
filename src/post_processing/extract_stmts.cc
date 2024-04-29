@@ -112,10 +112,6 @@ std::vector<std::shared_ptr<ASTNode>> extract_stmts(
 
         result.insert(result.end(), rest.begin(), rest.end());
     } else {
-        /*for (auto x : prod) {
-            std::cout << state::to_string(x) << " " << std::endl;
-        }
-        std::cout << std::endl;*/
         std::cerr << "Invalid production found while processing stmts."
                   << std::endl;
         exit(1);
