@@ -80,6 +80,31 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
 }
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<FnNode> node) {
+    auto func_ptr = std::make_shared<std::shared_ptr<std::function<int(std::vector<int>)>>>(nullptr);
+    auto func_wrapper = [=](auto args){
+        assert(*func_ptr);
+        return (**func_ptr)(args);
+    };
+    funcs[node->name] = func_wrapper;
+    auto stmtblock = node->stmts->accept(*this);
+    std::vector<std::string> params;
+    for (auto param : node->params) {
+        params.push_back(*param.name);
+    }
+    auto func = [=](auto args){
+        assert(args.size() == params.size());
+        std::map<std::string, int> m;
+        for (int i = 0; i < params.size(); i++) {
+            m[params.at(i)] = args.at(i);
+        }
+        return stmtblock(m);
+    };
+    (*func_ptr) = std::make_shared<std::function<int(std::vector<int>)>>(func);
+    return [](auto& m){ return 0; };
+}
+
+/*
+std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<FnNode> node) {
     auto stmtblock = node->stmts->accept(*this);
     std::vector<std::string> params;
     for (auto param : node->params) {
@@ -96,6 +121,7 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
     funcs[node->name] = func;
     return [](auto& m){ return 0; };
 }
+*/
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<IfNode> node) {
     auto condition = node->condition->accept(*this);
