@@ -14,9 +14,22 @@ add_library(type_checker_lib STATIC
     src/lex_parse/parse_node.cc
     src/lex_parse/scanning.cc
     src/lex_parse/token.cc
+    src/post_processing/extract_args.cc
+    src/post_processing/extract_expr.cc
     src/post_processing/extract_fns.cc
-    src/program_representation/stmt_block_node.cc
+    src/post_processing/extract_params.cc
+    src/post_processing/extract_stmts.cc
+    src/post_processing/extract_vardef.cc
+    src/program_representation/assign_node.cc
+    src/program_representation/binary_expr_node.cc
+    src/program_representation/call_node.cc
     src/program_representation/fn_node.cc
+    src/program_representation/if_node.cc
+    src/program_representation/literal_node.cc
+    src/program_representation/ret_node.cc
+    src/program_representation/stmt_block_node.cc
+    src/program_representation/unary_expr_node.cc
+    src/program_representation/var_access_node.cc
     src/program_representation/variable.cc
     src/transformations/visitor.cc
     src/type_check.cc
