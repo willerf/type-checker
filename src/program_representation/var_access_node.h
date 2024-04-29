@@ -4,6 +4,7 @@
 
 #include "ast_visit.h"
 #include "variable.h"
+
 struct VarAccessNode: ASTVisit<VarAccessNode> {
     Variable var;
     explicit VarAccessNode(Variable var);

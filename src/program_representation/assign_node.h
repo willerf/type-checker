@@ -14,4 +14,5 @@ struct AssignNode: ASTVisit<AssignNode> {
     explicit AssignNode(Variable lhs, std::shared_ptr<ASTNode> rhs);
 };
 
-std::shared_ptr<AssignNode> make_assign(Variable lhs, std::shared_ptr<ASTNode> rhs);
+std::shared_ptr<AssignNode>
+make_assign(Variable lhs, std::shared_ptr<ASTNode> rhs);

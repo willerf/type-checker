@@ -11,4 +11,5 @@ struct StmtBlockNode: ASTVisit<StmtBlockNode> {
     explicit StmtBlockNode(std::vector<std::shared_ptr<ASTNode>> stmts = {});
 };
 
-std::shared_ptr<StmtBlockNode> make_stmt_block(std::vector<std::shared_ptr<ASTNode>> stmts = {});
+std::shared_ptr<StmtBlockNode>
+make_stmt_block(std::vector<std::shared_ptr<ASTNode>> stmts = {});

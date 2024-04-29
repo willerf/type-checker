@@ -5,8 +5,8 @@
 #include <optional>
 #include <span>
 
-#include "parse_node.h"
 #include "grammar.h"
+#include "parse_node.h"
 #include "token.h"
 
 struct Grammar;

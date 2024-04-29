@@ -7,10 +7,7 @@
 
 #include "ast_visit.h"
 
-enum class LiteralType {
-    Int,
-    Bool
-};
+enum class LiteralType { Int, Bool };
 
 struct LiteralNode: ASTVisit<LiteralNode> {
     LiteralType literal_type;
@@ -19,5 +16,5 @@ struct LiteralNode: ASTVisit<LiteralNode> {
     explicit LiteralNode(LiteralType literal_type, std::string value);
 };
 
-std::shared_ptr<LiteralNode> make_literal(LiteralType literal_type, std::string value);
-
+std::shared_ptr<LiteralNode>
+make_literal(LiteralType literal_type, std::string value);

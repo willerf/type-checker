@@ -6,6 +6,4 @@
 #include "parse_node.h"
 #include "variable.h"
 
-Variable extract_vardef(
-    ParseNode root
-);
+Variable extract_vardef(ParseNode root);
