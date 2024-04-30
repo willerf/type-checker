@@ -16,14 +16,18 @@ std::vector<std::shared_ptr<ASTNode>> extract_args(
     if (prod == std::vector<State> {NonTerminal::args, NonTerminal::expr}) {
         // extract singular argument
         ParseNode expr = root.children.at(0);
+        auto expr_node = extract_expr(expr);
+        expr_node->line_no = root.line_no;
         result.push_back(
-            extract_expr(expr)
+                expr_node
         );
     } else if (prod == std::vector<State> {NonTerminal::args, NonTerminal::expr, Terminal::COMMA, NonTerminal::args}) {
         // extract code argument
         ParseNode expr = root.children.at(0);
+        auto expr_node = extract_expr(expr);
+        expr_node->line_no = root.line_no;
         result.push_back(
-            extract_expr(expr)
+                expr_node
         );
 
         // extract rest of arguments

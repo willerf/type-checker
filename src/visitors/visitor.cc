@@ -93,7 +93,7 @@ template<>
 std::shared_ptr<ASTNode>
 Visitor<std::shared_ptr<ASTNode>>::visit(std::shared_ptr<AssignNode> node) {
     auto rhs = node->rhs->accept(*this);
-    return make_assign(node->lhs, rhs);
+    return make_assign(node->declaration, node->lhs, rhs);
 }
 
 template<>

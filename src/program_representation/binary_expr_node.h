@@ -22,6 +22,8 @@ enum class BinaryOp {
     MOD
 };
 
+std::string to_string(BinaryOp op);
+
 struct BinaryExprNode: ASTVisit<BinaryExprNode> {
     std::shared_ptr<ASTNode> lhs;
     BinaryOp op;

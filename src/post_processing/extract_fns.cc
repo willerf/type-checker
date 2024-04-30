@@ -74,6 +74,7 @@ std::shared_ptr<ASTNode> extract_fn(
     }
 
     assert(result);
+    result->line_no = root.children.at(1).line_no;
     return result;
 }
 

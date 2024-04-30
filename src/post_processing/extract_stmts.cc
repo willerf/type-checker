@@ -35,7 +35,7 @@ std::shared_ptr<ASTNode> extract_stmt(
         ParseNode expr_node = root.children.at(3);
         auto expr = extract_expr(expr_node);
 
-        result = make_assign(var, expr);
+        result = make_assign(true, var, expr);
     } else if (prod
         == std::vector<State> {
             NonTerminal::stmt,
@@ -50,7 +50,7 @@ std::shared_ptr<ASTNode> extract_stmt(
         ParseNode expr_node = root.children.at(2);
         auto expr = extract_expr(expr_node);
 
-        result = make_assign(Variable(name), expr);
+        result = make_assign(false, Variable(name, LPrim::Generic), expr);
     } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::IF, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock, Terminal::ELSE, NonTerminal::stmtblock}) {
         // extract if else statements
         ParseNode expr = root.children.at(2);
@@ -86,6 +86,7 @@ std::shared_ptr<ASTNode> extract_stmt(
     }
 
     assert(result);
+    result->line_no = root.children.at(0).line_no;
     return result;
 }
 
@@ -149,5 +150,6 @@ std::shared_ptr<ASTNode> extract_stmtblock(
     }
 
     assert(result);
+    result->line_no = root.children.at(0).line_no;
     return result;
 }

@@ -30,5 +30,7 @@ std::shared_ptr<ASTNode> extract_s(
         exit(1);
     };
 
+    assert(result);
+    result->line_no = root.children.at(0).line_no;
     return result;
 }

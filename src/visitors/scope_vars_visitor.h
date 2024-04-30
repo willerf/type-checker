@@ -1,10 +1,8 @@
-
 #pragma once
 
 #include <functional>
 #include <map>
-#include <set>
-#include <queue>
+#include <stack>
 
 #include "assign_node.h"
 #include "ast_node.h"
@@ -20,34 +18,33 @@
 #include "var_access_node.h"
 #include "visitor.h"
 
-class TypeVisitor:
-    public Visitor<std::variant<LPrim, LCustom>> {
-
-    std::map<std::string, std::shared_ptr<FnNode>> m;
-    std::map<std::pair<std::shared_ptr<FnNode>, std::vector<std::variant<LPrim, LCustom>>>, std::variant<LPrim, LCustom>> completed;
+class ScopedVarsVisitor:
+    public Visitor<std::shared_ptr<ASTNode>> {
+    std::stack<std::map<std::string, Variable>> scopes;
   public:
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<ASTNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<AssignNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<BinaryExprNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<CallNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<FnNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<IfNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<LiteralNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<ProgramNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<RetNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<StmtBlockNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<UnaryExprNode>) override;
-    std::variant<LPrim, LCustom>
+    std::shared_ptr<ASTNode>
         visit(std::shared_ptr<VarAccessNode>) override;
+
 };

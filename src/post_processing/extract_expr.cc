@@ -4,6 +4,7 @@
 #include <iostream>
 #include <set>
 #include "extract_args.h"
+#include "lang_type.h"
 #include "variable.h"
 #include "var_access_node.h"
 #include "literal_node.h"
@@ -35,7 +36,7 @@ std::shared_ptr<ASTNode> extract_expr(
     if (prod == std::vector<State> {NonTerminal::p8, Terminal::ID}) {
         ParseNode id = root.children.at(0);
         std::string name = id.lexeme;
-        result = make_var_access(Variable(name)); 
+        result = make_var_access(Variable(name, LPrim::Generic)); 
     } else if (prod == std::vector<State> {NonTerminal::p8, Terminal::NUM}) {
         ParseNode num = root.children.at(0);
         result = make_literal(LiteralType::Int, num.lexeme);
@@ -152,5 +153,10 @@ std::shared_ptr<ASTNode> extract_expr(
     }
 
     assert(result);
+    size_t line_no = SIZE_T_MAX;
+    for (auto& child : root.children) {
+        line_no = std::min(line_no, child.line_no);
+    }
+    result->line_no = std::min(result->line_no, line_no);
     return result;
 }

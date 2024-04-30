@@ -6,9 +6,11 @@
 
 #include "eval_visitor.h"
 #include "extract_s.h"
+#include "scope_vars_visitor.h"
 #include "type_check.h"
 #include "lang_scanning.h"
 #include "lang_parsing.h"
+#include "type_visitor.h"
 
 void type_check(std::vector<std::string> input_file_paths) {
 
@@ -25,14 +27,20 @@ void type_check(std::vector<std::string> input_file_paths) {
         auto parse_node = parse(tokens);
         std::shared_ptr<ASTNode> program_node = extract_s(parse_node);
 
+        ScopedVarsVisitor svv;
+        auto program_node2 = program_node->accept(svv);
+
+        TypeVisitor tv;
+        program_node2->accept(tv);
+
         EvalVisitor ev;
         program_node->accept(ev);
         for (auto& [name, func] : ev.funcs) {
             if (name == "main") {
-                std::cout << "Result: " << func({}) << std::endl;
+                auto result = func({});
+                std::cout << "Result: " << result << std::endl;
             }
         }
     }
-
 }
 

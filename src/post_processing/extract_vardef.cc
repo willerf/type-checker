@@ -1,4 +1,5 @@
 
+#include "lang_type.h"
 #include "parse_node.h"
 #include "extract_vardef.h"
 
@@ -28,7 +29,7 @@ Variable extract_vardef(
         ParseNode id = root.children.at(0);
         std::string name = id.lexeme;
 
-        return Variable(name);
+        return Variable(name, LPrim::Generic);
     } else {
         std::cerr << "Invalid production found while processing vardef."
                   << std::endl;

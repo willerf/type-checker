@@ -13,7 +13,7 @@ enum class Terminal;
 struct Token {
     Terminal kind;
     std::string lexeme;
-    size_t line_no = 0;
+    size_t line_no = SIZE_T_MAX;
 
     bool operator==(const Token&) const;
 };

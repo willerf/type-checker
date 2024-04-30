@@ -9,6 +9,8 @@
 
 enum class UnaryOp { NOT };
 
+std::string to_string(UnaryOp op);
+
 struct UnaryExprNode: ASTVisit<UnaryExprNode> {
     UnaryOp op;
     std::shared_ptr<ASTNode> expr;

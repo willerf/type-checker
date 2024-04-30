@@ -14,11 +14,13 @@
 #include "var_access_node.h"
 #include "visitor.h"
 
+#include <algorithm>
 #include <iostream>
 #include <cassert>
+#include <iterator>
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<ASTNode> node) {
-    std::cout << "EvalVisitor error" << std::endl;
+    std::cerr << "EvalVisitor error" << std::endl;
     return [](auto& m){ 
         return 0; 
     };
@@ -26,7 +28,7 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto expr = node->rhs->accept(*this);
-    auto name = *node->lhs.name;
+    auto name = node->lhs.impl->name;
     return [=](auto& m) {
         m[name] = expr(m);
         return INT_MIN;
@@ -91,7 +93,7 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
     auto stmtblock = node->stmts->accept(*this);
     std::vector<std::string> params;
     for (auto param : node->params) {
-        params.push_back(*param.name);
+        params.push_back(param.impl->name);
     }
     auto func = [=](auto args){
         assert(args.size() == params.size());
@@ -153,6 +155,14 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
 }
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
+    funcs["print"] = [](auto args) {
+        std::cout << args.at(0);
+        return true;
+    };
+    funcs["println"] = [](auto args) {
+        std::cout << args.at(0) << std::endl;
+        return true;
+    };
     for (auto fn : node->fns) {
         fn->accept(*this);
     } 
@@ -171,10 +181,22 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
     return [=](auto& m) {
         std::map<std::string, int> m_copy = m;
         for (auto stmt : stmts) {
-            int val = stmt(m_copy);
+            int val = stmt(m);
             if (val != INT_MIN) {
+                std::vector<std::pair<std::string, int>> result;
+                std::set_intersection(m.begin(), m.end(), m_copy.begin(), m_copy.end(), std::back_inserter(result), [](const auto& a, const auto& b) { return a.first < b.first; });
+                m.clear();
+                for (const auto& p : result) {
+                    m.insert(p);
+                }
                 return val;
             }
+        }
+        std::vector<std::pair<std::string, int>> result;
+        std::set_intersection(m.begin(), m.end(), m_copy.begin(), m_copy.end(), std::back_inserter(result), [](const auto& a, const auto& b) { return a.first < b.first; });
+        m.clear();
+        for (const auto& p : result) {
+            m.insert(p);
         }
         return INT_MIN;
     };
@@ -189,7 +211,7 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
 }
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<VarAccessNode> node) {
-    auto name = *node->var.name; 
+    auto name = node->var.impl->name; 
     return [=](auto& m) {
         return m[name];
     };
