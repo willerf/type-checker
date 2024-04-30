@@ -9,7 +9,8 @@ struct CallNode: ASTVisit<CallNode> {
     std::vector<std::shared_ptr<ASTNode>> args;
     explicit CallNode(
         std::string proc_name,
-        std::vector<std::shared_ptr<ASTNode>> args);
+        std::vector<std::shared_ptr<ASTNode>> args
+    );
 };
 
 std::shared_ptr<CallNode>

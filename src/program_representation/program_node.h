@@ -11,5 +11,5 @@ struct ProgramNode: ASTVisit<ProgramNode> {
     explicit ProgramNode(std::vector<std::shared_ptr<ASTNode>> fns);
 };
 
-std::shared_ptr<ProgramNode> make_program(std::vector<std::shared_ptr<ASTNode>> fns);
-
+std::shared_ptr<ProgramNode>
+make_program(std::vector<std::shared_ptr<ASTNode>> fns);

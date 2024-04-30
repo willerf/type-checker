@@ -12,7 +12,11 @@ struct AssignNode: ASTVisit<AssignNode> {
     bool declaration;
     Variable lhs;
     std::shared_ptr<ASTNode> rhs;
-    explicit AssignNode(bool declaration, Variable lhs, std::shared_ptr<ASTNode> rhs);
+    explicit AssignNode(
+        bool declaration,
+        Variable lhs,
+        std::shared_ptr<ASTNode> rhs
+    );
 };
 
 std::shared_ptr<AssignNode>

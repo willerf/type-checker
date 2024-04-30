@@ -3,11 +3,7 @@
 
 #include <vector>
 
-enum class LPrim {
-    Int,
-    Bool,
-    Generic
-};
+enum class LPrim { Int, Bool, Generic };
 
 std::string to_string(LPrim lprim);
 

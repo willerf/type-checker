@@ -18,33 +18,20 @@
 #include "var_access_node.h"
 #include "visitor.h"
 
-class ScopedVarsVisitor:
-    public Visitor<std::shared_ptr<ASTNode>> {
+class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
     std::stack<std::map<std::string, Variable>> scopes;
-  public:
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<ASTNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<AssignNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<BinaryExprNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<CallNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<FnNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<IfNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<LiteralNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<ProgramNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<RetNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<StmtBlockNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<UnaryExprNode>) override;
-    std::shared_ptr<ASTNode>
-        visit(std::shared_ptr<VarAccessNode>) override;
 
+  public:
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<ASTNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<AssignNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<BinaryExprNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<CallNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<FnNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<IfNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<LiteralNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<ProgramNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<RetNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<StmtBlockNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<UnaryExprNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<VarAccessNode>) override;
 };
