@@ -1,5 +1,5 @@
 
-#include "type_visitor_old.h"
+#include "type_explore_visitor.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -18,12 +18,12 @@
 #include <cassert>
 #include <memory>
 
-LType TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
-    std::cerr << "TypeVisitor error" << std::endl;
+LType TypeExploreVisitor::visit(std::shared_ptr<ASTNode> node) {
+    std::cerr << "TypeExploreVisitor error" << std::endl;
     return LType();
 }
 
-LType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto expr_type_info = node->rhs->accept(*this);
     if (node->declaration) {
         node->lhs.impl->type_info = std::make_shared<LType>(expr_type_info); 
@@ -38,7 +38,7 @@ LType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
     return LPrim::Generic;
 }
 
-LType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     auto lhs = node->lhs->accept(*this);
     auto rhs = node->rhs->accept(*this);
     if (std::holds_alternative<LPrim>(lhs) && std::get<LPrim>(lhs) == LPrim::Generic) {
@@ -87,7 +87,7 @@ LType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     }
 }
 
-LType TypeVisitor::visit(std::shared_ptr<CallNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<CallNode> node) {
     std::vector<LType> args;
     for (auto expr : node->args) {
         args.push_back(expr->accept(*this));
@@ -115,11 +115,11 @@ LType TypeVisitor::visit(std::shared_ptr<CallNode> node) {
     }
 }
 
-LType TypeVisitor::visit(std::shared_ptr<FnNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<FnNode> node) {
     return node->stmts->accept(*this);
 }
 
-LType TypeVisitor::visit(std::shared_ptr<IfNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<IfNode> node) {
     auto condition = node->condition->accept(*this);
     if (!(std::holds_alternative<LPrim>(condition) && std::get<LPrim>(condition) == LPrim::Bool)) {
         std::cerr << "Invalid condition on line " << node->line_no << std::endl;
@@ -142,7 +142,7 @@ LType TypeVisitor::visit(std::shared_ptr<IfNode> node) {
     exit(1);
 }
 
-LType TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<LiteralNode> node) {
     switch (node->literal_type) {
         case LiteralType::Bool:
             return LPrim::Bool;
@@ -153,9 +153,9 @@ LType TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
     exit(1);
 }
 
-LType TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
-    m["print"] = make_fn("print", {Variable("var")}, make_ret(make_literal(LiteralType::Bool, "true")));
-    m["println"] = make_fn("println", {Variable("var")}, make_ret(make_literal(LiteralType::Bool, "true")));
+LType TypeExploreVisitor::visit(std::shared_ptr<ProgramNode> node) {
+    m["print"] = make_fn("print", {Variable("var")}, make_ret(make_literal(LiteralType::Bool, "true")), std::make_shared<LType>(LPrim::Bool));
+    m["println"] = make_fn("println", {Variable("var")}, make_ret(make_literal(LiteralType::Bool, "true")), std::make_shared<LType>(LPrim::Bool));
     for (auto node : node->fns) {
         auto fn = std::dynamic_pointer_cast<FnNode>(node);
         if (fn) {
@@ -176,11 +176,11 @@ LType TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
     return LPrim::Generic;
 }
 
-LType TypeVisitor::visit(std::shared_ptr<RetNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<RetNode> node) {
     return node->expr->accept(*this);
 }
 
-LType TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
     LType result = LPrim::Generic;
     size_t line_no = SIZE_T_MAX;
     for (auto stmt : node->stmts) {
@@ -203,7 +203,7 @@ LType TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
     return result;
 }
 
-LType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr = node->expr->accept(*this);
     switch (node->op) {
         case UnaryOp::NOT:
@@ -216,7 +216,7 @@ LType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     }
 }
 
-LType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
+LType TypeExploreVisitor::visit(std::shared_ptr<VarAccessNode> node) {
     return *node->var.impl->type_info;
 }
 

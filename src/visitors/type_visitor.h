@@ -20,22 +20,26 @@
 #include "var_access_node.h"
 #include "visitor.h"
 
-class TypeVisitor: public Visitor<LType> {
+class TypeVisitor: public Visitor<std::shared_ptr<LType>> {
+    std::map<std::string, std::shared_ptr<FnNode>> func_map;
+    std::string curr_func;
     
   public:
-    LType visit(std::shared_ptr<ASTNode>) override;
-    LType visit(std::shared_ptr<AssignNode>) override;
-    LType
+    std::vector<std::pair<std::shared_ptr<LType>, std::shared_ptr<LType>>> edges;
+
+    std::shared_ptr<LType> visit(std::shared_ptr<ASTNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<AssignNode>) override;
+    std::shared_ptr<LType>
         visit(std::shared_ptr<BinaryExprNode>) override;
-    LType visit(std::shared_ptr<CallNode>) override;
-    LType visit(std::shared_ptr<FnNode>) override;
-    LType visit(std::shared_ptr<IfNode>) override;
-    LType visit(std::shared_ptr<LiteralNode>) override;
-    LType visit(std::shared_ptr<ProgramNode>) override;
-    LType visit(std::shared_ptr<RetNode>) override;
-    LType visit(std::shared_ptr<StmtBlockNode>) override;
-    LType visit(std::shared_ptr<UnaryExprNode>) override;
-    LType visit(std::shared_ptr<VarAccessNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<CallNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<FnNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<IfNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<LiteralNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<ProgramNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<RetNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<StmtBlockNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<UnaryExprNode>) override;
+    std::shared_ptr<LType> visit(std::shared_ptr<VarAccessNode>) override;
 };
 
 // let c = a + b

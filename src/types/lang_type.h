@@ -3,7 +3,7 @@
 
 #include <vector>
 
-enum class LPrim { Int, Bool, Generic };
+enum class LPrim { Invalid, Int, Bool, Generic };
 
 std::string to_string(LPrim lprim);
 
@@ -15,3 +15,4 @@ struct LCustom {
 typedef std::variant<LPrim, LCustom> LType;
 
 std::string to_string(LType ltype);
+

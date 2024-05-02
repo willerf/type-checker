@@ -50,7 +50,7 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<FnNode> node) 
         scope[v.impl->name] = v;
     }
     scopes.push(scope);
-    auto result = make_fn(node->name, params, node->stmts->accept(*this));
+    auto result = make_fn(node->name, params, node->stmts->accept(*this), std::make_shared<LType>(LPrim::Generic));
     result->line_no = node->line_no;
     return result;
 }

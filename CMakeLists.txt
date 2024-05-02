@@ -38,7 +38,7 @@ add_library(type_checker_lib STATIC
     src/visitors/eval_visitor.cc
     src/visitors/scope_vars_visitor.cc
     src/visitors/type_visitor.cc
-    src/visitors/type_visitor_old.cc
+    src/visitors/type_explore_visitor.cc
     src/type_check.cc
 )
 

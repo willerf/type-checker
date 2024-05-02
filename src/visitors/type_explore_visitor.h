@@ -20,7 +20,7 @@
 #include "var_access_node.h"
 #include "visitor.h"
 
-class TypeVisitor: public Visitor<LType> {
+class TypeExploreVisitor: public Visitor<LType> {
     std::map<std::string, std::shared_ptr<FnNode>> m;
     std::map<
         std::pair<

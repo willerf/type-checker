@@ -118,7 +118,7 @@ template<>
 std::shared_ptr<ASTNode>
 Visitor<std::shared_ptr<ASTNode>>::visit(std::shared_ptr<FnNode> node) {
     auto result = node->stmts->accept(*this); 
-    return make_fn(node->name, node->params, result);
+    return make_fn(node->name, node->params, result, node->ret_type);
 }
 
 template<>
