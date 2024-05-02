@@ -21,7 +21,14 @@
 #include "visitor.h"
 
 class TypeVisitor: public Visitor<LType> {
-    
+    std::map<std::string, std::shared_ptr<FnNode>> m;
+    std::map<
+        std::pair<
+            std::shared_ptr<FnNode>,
+            std::vector<LType>>,
+        LType>
+        completed;
+
   public:
     LType visit(std::shared_ptr<ASTNode>) override;
     LType visit(std::shared_ptr<AssignNode>) override;
@@ -37,8 +44,3 @@ class TypeVisitor: public Visitor<LType> {
     LType visit(std::shared_ptr<UnaryExprNode>) override;
     LType visit(std::shared_ptr<VarAccessNode>) override;
 };
-
-// let c = a + b
-// let c = operator+(a, b)
-// c -> operator+ -> [a, b]
-//

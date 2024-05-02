@@ -12,7 +12,7 @@ std::string to_string(LPrim lprim) {
     }
 }
 
-std::string to_string(std::variant<LPrim, LCustom> ltype) {
+std::string to_string(LType ltype) {
     if (std::holds_alternative<LPrim>(ltype)) {
         return to_string(std::get<LPrim>(ltype));
     }

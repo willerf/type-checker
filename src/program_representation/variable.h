@@ -8,15 +8,15 @@
 
 struct VarImpl {
     std::string name;
-    std::variant<LPrim, LCustom> type_info;
+    std::shared_ptr<LType> type_info;
 
-    explicit VarImpl(std::string name, std::variant<LPrim, LCustom> type_info);
+    explicit VarImpl(const std::string& name, std::shared_ptr<LType> type_info);
 };
 
 struct Variable {
     std::shared_ptr<VarImpl> impl;
     explicit Variable(
         const std::string& name = "",
-        std::variant<LPrim, LCustom> type_info = LPrim::Generic
+        LType type_info = LPrim::Generic
     );
 };

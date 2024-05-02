@@ -12,4 +12,6 @@ struct LCustom {
     auto operator<=>(const LCustom& other) const = default;
 };
 
-std::string to_string(std::variant<LPrim, LCustom> ltype);
+typedef std::variant<LPrim, LCustom> LType;
+
+std::string to_string(LType ltype);

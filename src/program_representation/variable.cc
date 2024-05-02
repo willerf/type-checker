@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-VarImpl::VarImpl(std::string name, std::variant<LPrim, LCustom> type_info) : name{name}, type_info{type_info} {}
-Variable::Variable(const std::string& name, std::variant<LPrim, LCustom> type_info) {
-    impl = std::make_shared<VarImpl>(name, type_info);
+VarImpl::VarImpl(const std::string& name, std::shared_ptr<LType> type_info) : name{name}, type_info{type_info} {}
+Variable::Variable(const std::string& name, LType type_info) {
+    impl = std::make_shared<VarImpl>(name, std::make_shared<LType>(type_info));
 }
