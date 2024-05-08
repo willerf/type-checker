@@ -165,30 +165,201 @@ void LangTypeGraph::add_fn(std::string fn_name, std::shared_ptr<FnNode> fn) {
     fn_map[fn_name] = fn;
 }
 
+
+static void subtype(PtrLType t1, PtrLType t2) {
+
+    auto t1_gen = *t1;
+    auto t2_gen = *t2;
+
+    bool t1_prim = std::holds_alternative<LPrim>(*t1_gen);
+    bool t2_prim = std::holds_alternative<LPrim>(*t2_gen);
+
+    if (t1_prim && t2_prim) {
+        auto& ltimpl1 = std::get<LPrim>(*t1_gen);
+        auto& ltimpl2 = std::get<LPrim>(*t2_gen);
+        if (ltimpl1 == LPrim::Generic && ltimpl2 == LPrim::Generic || ltimpl1 == ltimpl2) {
+        }
+        else if (ltimpl1 == LPrim::Generic) {
+            ltimpl1 = ltimpl2;
+        }
+        else if (ltimpl2 == LPrim::Generic) {
+        }
+        else {
+            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
+            exit(1);
+        }
+    }
+    else if (t1_prim) {
+        auto& ltimpl1 = std::get<LPrim>(*t1_gen);
+        auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+
+        if (ltimpl1 == LPrim::Generic) {
+            *t1_gen = *t2_gen;
+        }
+        else {
+            // todo: add checks for compability between prim type and type classes
+        }
+    }
+    else if (t2_prim) {
+        auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+        auto& ltimpl2 = std::get<LPrim>(*t2_gen);
+
+        if (ltimpl2 == LPrim::Generic) {
+        }
+        else {
+            // todo: add checks for compability between prim type and type classes
+            *t1_gen = *t2_gen;
+        }
+    }
+    else {
+        auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+        auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+
+        for (auto tc : ltimpl2) {
+            ltimpl1.insert(tc);
+        }
+    }
+
+}
+
 void LangTypeGraph::reduce() {
 
     int n = calls.size();
     for (int i = 0; i < n; i++) {
+        auto& [ret_type, fn_name, arg_types] = calls[i]; 
+        auto fn = fn_map.at(fn_name);
+        assert(fn->params.size() == arg_types.size());
+
+        for (int i = 0; i < fn->params.size(); i++) {
+            if (type_id[fn->params[i].impl->ptr_ltype] == type_id[fn->ret_type]) {
+                union_types(ret_type, arg_types[i]);
+            }
+        }
+        
+        for (int i = 0; i < fn->params.size(); i++) {
+            auto p1 = fn->params[i].impl->ptr_ltype;
+            for (int j = i + 1; j < fn->params.size(); j++) {
+                auto p2 = fn->params[j].impl->ptr_ltype;
+                if (type_id.at(p1) == type_id.at(p2)) {
+                    union_types(arg_types[i], arg_types[j]);
+                }
+            }
+        }
+    }
+
+
+    for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             auto& [ret_type, fn_name, arg_types] = calls[j]; 
             auto fn = fn_map.at(fn_name);
+
+            subtype(ret_type, fn->ret_type);
+
+            for (int i = 0; i < fn->params.size(); i++) {
+                auto param_type = fn->params[i].impl->ptr_ltype;
+                subtype(arg_types[i], param_type);
+            }
+
             
+            /*
             assert(fn->params.size() == arg_types.size());
             if (std::holds_alternative<LPrim>(**fn->ret_type)) {
                 auto ltype = std::get<LPrim>(**fn->ret_type);
+                if (ltype != LPrim::Generic) {
+                    if (**ret_type != **fn->ret_type) {
+                        std::cerr << "Incompatible types " << to_string(ret_type) << " and " << to_string(fn->ret_type) << std::endl;
+                        exit(1);
+                    }
+                }
                 **ret_type = ltype;
             }
+            
+            for (int i = 0; i < fn->params.size(); i++) {
+                auto param_type = fn->params[i].impl->ptr_ltype;
+                if (std::holds_alternative<LPrim>(**param_type)) {
+                    auto ltype = std::get<LPrim>(**param_type);
+                    **ret_type = ltype;
+                }
+                
+            }
+            */
+            
+            /*
             for (int i = 0; i < fn->params.size(); i++) {
                 if (type_id[fn->params[i].impl->ptr_ltype] == type_id[fn->ret_type]) {
                     std::cout << "DEBUG AGAIN: " << to_string(arg_types[i]) << std::endl;
                     std::cout << type_id[ret_type] << " " << type_id[arg_types[i]] << std::endl;
-                    /*size_t tid = type_id.at(ret_type);
-                    for (auto ptr_ltype : type_sets.at(tid)) {
-                        *ptr_ltype = *arg_types[i];
-                    }*/
+                    //size_t tid = type_id.at(ret_type);
+                    //for (auto ptr_ltype : type_sets.at(tid)) {
+                    //    *ptr_ltype = *arg_types[i];
+                    //}
                     **ret_type = **arg_types[i];
                 }
             }
+            */
+        
+            
+            /*
+            for (int i = 0; i < fn->params.size(); i++) {
+                
+
+                auto t1 = arg_types[i];
+                auto t2 = fn->params[i].impl->ptr_ltype;
+
+                auto t1_gen = *t1;
+                auto t2_gen = *t2;
+
+
+
+                bool t1_prim = std::holds_alternative<LPrim>(*t1_gen);
+                bool t2_prim = std::holds_alternative<LPrim>(*t2_gen);
+
+                if (t1_prim && t2_prim) {
+                    auto& ltimpl1 = std::get<LPrim>(*t1_gen);
+                    auto& ltimpl2 = std::get<LPrim>(*t2_gen);
+                    if (ltimpl1 == LPrim::Generic && ltimpl2 == LPrim::Generic || ltimpl1 == ltimpl2) {
+                    }
+                    else if (ltimpl1 == LPrim::Generic) {
+                        ltimpl1 = ltimpl2;
+                    }
+                    else if (ltimpl2 == LPrim::Generic) {
+                    }
+                    else {
+                        std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
+                        exit(1);
+                    }
+                }
+                else if (t1_prim) {
+                    auto& ltimpl1 = std::get<LPrim>(*t1_gen);
+                    auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+
+                    if (ltimpl1 == LPrim::Generic) {
+                        *t1_gen = *t2_gen;
+                    }
+                    else {
+                        // todo: add checks for compability between prim type and type classes
+                    }
+                }
+                else if (t2_prim) {
+                    auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+                    auto& ltimpl2 = std::get<LPrim>(*t2_gen);
+
+                    if (ltimpl2 == LPrim::Generic) {
+                    }
+                    else {
+                        // todo: add checks for compability between prim type and type classes
+                        *t1_gen = *t2_gen;
+                    }
+                }
+                else {
+                    auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+                    auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+
+                    for (auto tc : ltimpl2) {
+                        ltimpl1.insert(tc);
+                    }
+                }
+            }*/
         }
     }
 
@@ -224,6 +395,11 @@ void LangTypeGraph::reduce() {
         tmp += "})";
         std::cout << tmp << std::endl;
     }
+    std::cout << "\n\n\n";
 
 
+}
+
+std::map<PtrLType, size_t> LangTypeGraph::get_type_id() {
+    return type_id;
 }

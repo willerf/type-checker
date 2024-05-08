@@ -18,6 +18,7 @@ public:
     PtrLType add_call(std::string fn_name, std::vector<PtrLType> arg_types);
     void add_fn(std::string fn_name, std::shared_ptr<FnNode> fn);
     void reduce();
+    std::map<PtrLType, size_t> get_type_id();
 };
 
 
