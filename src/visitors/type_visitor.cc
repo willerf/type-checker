@@ -4,151 +4,152 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include "binary_expr_node.h"
 #include "lang_type.h"
 #include "unary_expr_node.h"
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
+
+
+PtrLType TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
     std::cerr << "TypeVisitor error" << std::endl;
     exit(1);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
-    auto expr_type = node->rhs->accept(*this);
-    edges.push_back({node->lhs.impl->type_info, expr_type});
-    edges.push_back({expr_type, node->lhs.impl->type_info});
-    return std::make_shared<LType>(LPrim::Invalid);
+PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
+    auto lhs_type = node->lhs.impl->ptr_ltype;
+    if (node->declaration) {
+        ltg.add_type(lhs_type);
+    }
+    auto rhs_type = node->rhs->accept(*this);
+    ltg.union_types(lhs_type, rhs_type);
+    return make_lt(LPrim::Invalid);
 }
 
-std::pair<LPrim, LPrim> op_types(BinaryOp op) {
-    switch (op) {
-        case BinaryOp::OR:
-        case BinaryOp::AND:
-            return {LPrim::Bool, LPrim::Bool};
-        case BinaryOp::EQ:
-        case BinaryOp::NE:
-            return {LPrim::Generic, LPrim::Bool};
-        case BinaryOp::LT:
-        case BinaryOp::GT:
-        case BinaryOp::LE:
-        case BinaryOp::GE:
-            return {LPrim::Int, LPrim::Bool};
-        case BinaryOp::PLUS:
-        case BinaryOp::MINUS:
-        case BinaryOp::TIMES:
-        case BinaryOp::DIVIDE:
-        case BinaryOp::MOD:
-            return {LPrim::Int, LPrim::Int};
-    }
-}
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
+std::map<BinaryOp, LTypeClass> bin_op_tc = {
+    {BinaryOp::EQ, LTypeClass::Eq},
+    {BinaryOp::NE, LTypeClass::Eq},
+    {BinaryOp::LT, LTypeClass::Ord},
+    {BinaryOp::GT, LTypeClass::Ord},
+    {BinaryOp::LE, LTypeClass::Ord},
+    {BinaryOp::GE, LTypeClass::Ord},
+    {BinaryOp::PLUS, LTypeClass::Plus},
+    {BinaryOp::MINUS, LTypeClass::Minus},
+    {BinaryOp::TIMES, LTypeClass::Star},
+    {BinaryOp::DIVIDE, LTypeClass::Slash},
+    {BinaryOp::MOD, LTypeClass::Percent}
+};
+std::set<BinaryOp> comp_ops = {
+    BinaryOp::EQ, BinaryOp::NE, BinaryOp::LT, BinaryOp::GT, BinaryOp::LE, BinaryOp::GE
+};
+PtrLType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     auto lhs_type = node->lhs->accept(*this);
     auto rhs_type = node->rhs->accept(*this);
-    edges.push_back({lhs_type, rhs_type});
-    edges.push_back({rhs_type, lhs_type});
+    ltg.union_types(lhs_type, rhs_type);
 
-    auto in_out = op_types(node->op);
-    auto input_type = std::make_shared<LType>(in_out.first);
-    auto output_type = std::make_shared<LType>(in_out.second);
-    edges.push_back({lhs_type, input_type});
-    edges.push_back({rhs_type, input_type});
-    return output_type;
+    if (bin_op_tc.contains(node->op)) {
+        auto result_type = ltg.add_tc(lhs_type, bin_op_tc.at(node->op));
+        if (comp_ops.contains(node->op)) {
+            auto bool_type = make_lt(LPrim::Bool);
+            return ltg.add_type(bool_type);
+        }
+        else {
+            return result_type;
+        }
+    }
+    else {
+        auto bool_type = make_lt(LPrim::Bool);
+        return ltg.add_type(bool_type);
+    }
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<CallNode> node) {
+PtrLType TypeVisitor::visit(std::shared_ptr<CallNode> node) {
+    std::vector<PtrLType> arg_types;
     for (auto arg : node->args) {
-        arg->accept(*this);
+        arg_types.push_back(arg->accept(*this));
     }
-    auto ret_type = func_map[node->proc_name]->ret_type;
-    auto tmp_type = std::make_shared<LType>(LPrim::Generic);
-    edges.push_back({tmp_type, ret_type});
-    return tmp_type;
+    return ltg.add_call(node->proc_name, arg_types);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<FnNode> node) {
+PtrLType TypeVisitor::visit(std::shared_ptr<FnNode> node) {
+    for (auto param : node->params) {
+        ltg.add_type(param.impl->ptr_ltype);
+    }
+    ltg.add_type(node->ret_type);
     node->stmts->accept(*this);
-    return std::make_shared<LType>(LPrim::Invalid);
+    return make_lt(LPrim::Invalid);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<IfNode> node) {
+PtrLType TypeVisitor::visit(std::shared_ptr<IfNode> node) {
     auto cond_type = node->condition->accept(*this);
-    edges.push_back({cond_type, std::make_shared<LType>(LPrim::Bool)});
     node->thens->accept(*this);
-    if (node->elses) {
-        node->elses->accept(*this);
-    }
-    return std::make_shared<LType>(LPrim::Invalid);
+    node->elses->accept(*this);
+    auto bool_type = make_lt(LPrim::Bool);
+    ltg.add_type(bool_type);
+    return ltg.union_types(cond_type, bool_type);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
-    std::shared_ptr<LType> literal_type = nullptr;
+PtrLType TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
+    PtrLType literal_type = nullptr;
     switch (node->literal_type) {
         case LiteralType::Int:
-            literal_type = std::make_shared<LType>(LPrim::Int);
+            literal_type = make_lt(LPrim::Int);
             break;
         case LiteralType::Bool:
-            literal_type = std::make_shared<LType>(LPrim::Bool);
+            literal_type = make_lt(LPrim::Bool);
             break;
     }
     assert(literal_type);
+    ltg.add_type(literal_type);
     return literal_type;
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
+PtrLType TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
     for (auto node : node->fns) {
-        auto fn = std::dynamic_pointer_cast<FnNode>(node);
-        if (fn) {
-            func_map[fn->name] = fn;
-        }
-        else {
-            std::cerr << "Program error" << std::endl;
-            exit(1);
-        }
+        auto fn = std::static_pointer_cast<FnNode>(node);
+        fn_map[fn->name] = fn;
+        ltg.add_fn(fn->name, fn);
     }
 
     for (auto node : node->fns) {
         auto fn = std::static_pointer_cast<FnNode>(node);
-        curr_func = fn->name;
+        curr_fn = fn;
         node->accept(*this);
     }
 
-    return std::make_shared<LType>(LPrim::Invalid);
+    ltg.reduce();
+
+    return make_lt(LPrim::Invalid);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<RetNode> node) {
-    auto expr_type = node->expr->accept(*this); 
-    auto ret_type = func_map.at(curr_func)->ret_type;
-
-    edges.push_back({ret_type, expr_type});
-    
-    return std::make_shared<LType>(LPrim::Invalid);
+PtrLType TypeVisitor::visit(std::shared_ptr<RetNode> node) {
+    auto expr_type = node->expr->accept(*this);
+    auto ret_type = curr_fn->ret_type;
+    return ltg.union_types(expr_type, ret_type);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
+PtrLType TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
     for (auto stmt : node->stmts) {
         stmt->accept(*this);
     }
-    return std::make_shared<LType>(LPrim::Invalid);
+    return make_lt(LPrim::Invalid);
 }
 
-std::pair<LPrim, LPrim> op_types(UnaryOp op) {
-    switch (op) {
-        case UnaryOp::NOT:
-            return {LPrim::Bool, LPrim::Bool};
-    }
-}
-
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
+PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr_type = node->expr->accept(*this);
+        
+    switch (node->op) {
+        case UnaryOp::NOT:
+            auto bool_type = make_lt(LPrim::Bool);
+            ltg.add_type(bool_type);
+            return ltg.union_types(expr_type, bool_type);
+    }
 
-    auto in_out = op_types(node->op);
-    auto input_type = std::make_shared<LType>(in_out.first);
-    auto output_type = std::make_shared<LType>(in_out.second);
-    edges.push_back({expr_type, input_type});
-    return output_type;
+    std::cerr << "UnaryExpr error" << std::endl;
+    exit(1);
 }
 
-std::shared_ptr<LType> TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
-    return node->var.impl->type_info;
+PtrLType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
+    return node->var.impl->ptr_ltype;
 }
 
 

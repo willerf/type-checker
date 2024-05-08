@@ -16,10 +16,7 @@ struct ASTNode {
     virtual std::function<int(std::map<std::string, int>&)>
     accept(Visitor<std::function<int(std::map<std::string, int>&)>>& visitor
     ) = 0;
-    virtual LType
-    accept(Visitor<LType>& visitor) = 0;
-    virtual std::shared_ptr<LType>
-    accept(Visitor<std::shared_ptr<LType>>& visitor) = 0;
+    virtual PtrLType accept(Visitor<PtrLType>& visitor) = 0;
     virtual std::shared_ptr<ASTNode> clone() const = 0;
 
     virtual ~ASTNode() {}
