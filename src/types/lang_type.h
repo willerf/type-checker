@@ -25,4 +25,3 @@ std::string to_string(LCustom lcustom);
 
 std::string to_string(LType ltype);
 std::string to_string(PtrLType ptrltype);
-

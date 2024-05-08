@@ -21,17 +21,10 @@
 #include "visitor.h"
 
 class TypeVisitor: public Visitor<PtrLType> {
-    std::map<std::string, std::shared_ptr<FnNode>> func_map;
-    std::string curr_func;
-    
   public:
-    std::vector<std::pair<PtrLType, PtrLType>> eq_edges;
-    std::vector<std::pair<PtrLType, PtrLType>> sub_edges;
-
     PtrLType visit(std::shared_ptr<ASTNode>) override;
     PtrLType visit(std::shared_ptr<AssignNode>) override;
-    PtrLType
-        visit(std::shared_ptr<BinaryExprNode>) override;
+    PtrLType visit(std::shared_ptr<BinaryExprNode>) override;
     PtrLType visit(std::shared_ptr<CallNode>) override;
     PtrLType visit(std::shared_ptr<FnNode>) override;
     PtrLType visit(std::shared_ptr<IfNode>) override;
@@ -42,4 +35,3 @@ class TypeVisitor: public Visitor<PtrLType> {
     PtrLType visit(std::shared_ptr<UnaryExprNode>) override;
     PtrLType visit(std::shared_ptr<VarAccessNode>) override;
 };
-

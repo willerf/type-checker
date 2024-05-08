@@ -26,14 +26,13 @@ struct ASTVisit: ASTClone<T>, std::enable_shared_from_this<ASTVisit<T>> {
         )));
     }
 
-    LType
-    accept(Visitor<LType>& visitor) override {
+    LType accept(Visitor<LType>& visitor) override {
         return visitor.visit(std::static_pointer_cast<T>(this->shared_from_this(
         )));
     }
 
-    std::shared_ptr<LType>
-    accept(Visitor<std::shared_ptr<LType>>& visitor) override {
+    std::shared_ptr<LType> accept(Visitor<std::shared_ptr<LType>>& visitor
+    ) override {
         return visitor.visit(std::static_pointer_cast<T>(this->shared_from_this(
         )));
     }

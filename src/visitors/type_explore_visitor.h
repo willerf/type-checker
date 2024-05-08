@@ -22,18 +22,13 @@
 
 class TypeExploreVisitor: public Visitor<LType> {
     std::map<std::string, std::shared_ptr<FnNode>> m;
-    std::map<
-        std::pair<
-            std::shared_ptr<FnNode>,
-            std::vector<LType>>,
-        LType>
+    std::map<std::pair<std::shared_ptr<FnNode>, std::vector<LType>>, LType>
         completed;
 
   public:
     LType visit(std::shared_ptr<ASTNode>) override;
     LType visit(std::shared_ptr<AssignNode>) override;
-    LType
-        visit(std::shared_ptr<BinaryExprNode>) override;
+    LType visit(std::shared_ptr<BinaryExprNode>) override;
     LType visit(std::shared_ptr<CallNode>) override;
     LType visit(std::shared_ptr<FnNode>) override;
     LType visit(std::shared_ptr<IfNode>) override;
