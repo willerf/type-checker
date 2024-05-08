@@ -1,13 +1,27 @@
 
 #include "lang_type.h"
 
+#include <iostream>
+
 PtrLType make_lt(LPrim lprim) {
-    return std::make_shared<LType>(lprim);
+    auto ltype = std::make_shared<LTypeImpl>(lprim);
+    return std::make_shared<LType>(ltype);
 }
 
 PtrLType make_lt(LTypeClass tc) {
-    std::vector<LTypeClass> tmp = {tc};
-    return std::make_shared<LType>(tmp);
+    std::set<LTypeClass> tmp = {tc};
+    auto ltype = std::make_shared<LTypeImpl>(tmp);
+    return std::make_shared<LType>(ltype);
+}
+
+PtrLType make_lt(LCustom lcustom) {
+    std::cerr << "Implement this" << std::endl;
+    exit(1);
+}
+
+PtrLType make_lt(LTypeImpl ltypeimpl) {
+    auto ltype = std::make_shared<LTypeImpl>(ltypeimpl);
+    return std::make_shared<LType>(ltype);
 }
 
 std::string to_string(LPrim lprim) {
@@ -56,12 +70,12 @@ std::string to_string(LCustom lcustom) {
     return result;
 }
 
-std::string to_string(LType ltype) {
-    if (std::holds_alternative<LPrim>(ltype)) {
-        return to_string(std::get<LPrim>(ltype));
+std::string to_string(LTypeImpl ltypeimpl) {
+    if (std::holds_alternative<LPrim>(ltypeimpl)) {
+        return to_string(std::get<LPrim>(ltypeimpl));
     }
-    if (std::holds_alternative<std::vector<LTypeClass>>(ltype)) {
-        auto& tcs = std::get<std::vector<LTypeClass>>(ltype);
+    if (std::holds_alternative<std::set<LTypeClass>>(ltypeimpl)) {
+        auto& tcs = std::get<std::set<LTypeClass>>(ltypeimpl);
         std::string result = "[";
         for (auto tc : tcs) {
             result += to_string(tc) + ", "; 
@@ -73,10 +87,14 @@ std::string to_string(LType ltype) {
         result += "]";
         return result;
     }
-    if (std::holds_alternative<LCustom>(ltype)) {
-        return to_string(std::get<LCustom>(ltype));
+    if (std::holds_alternative<LCustom>(ltypeimpl)) {
+        return to_string(std::get<LCustom>(ltypeimpl));
     }
     return "Unreachable";
+}
+
+std::string to_string(LType ltype) {
+    return to_string(*ltype);
 }
 
 std::string to_string(PtrLType ptrltype) {

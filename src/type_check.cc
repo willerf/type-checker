@@ -35,6 +35,24 @@ void type_check(std::vector<std::string> input_file_paths) {
         TypeVisitor tv;
         program_node2->accept(tv);
 
+
+        for (auto node : std::static_pointer_cast<ProgramNode>(program_node2)->fns) {
+            std::string output = "";
+            auto fn = std::static_pointer_cast<FnNode>(node);
+            output += fn->name;
+            output += ": (";
+            for (auto param : fn->params) {
+                output += to_string(param.impl->ptr_ltype) + ", ";
+            }
+            if (!fn->params.empty()) {
+                output.pop_back();
+                output.pop_back();
+            }
+            output += ") -> ";
+            output += to_string(fn->ret_type);
+            std::cout << output << std::endl; 
+        }
+
     }
 }
 

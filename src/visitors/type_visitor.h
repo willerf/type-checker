@@ -22,6 +22,8 @@
 #include "visitor.h"
 
 class TypeVisitor: public Visitor<PtrLType> {
+    std::shared_ptr<FnNode> curr_fn;
+    std::map<std::string, std::shared_ptr<FnNode>> fn_map;
   public:
       LangTypeGraph ltg;
     PtrLType visit(std::shared_ptr<ASTNode>) override;
