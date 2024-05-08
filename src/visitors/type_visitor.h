@@ -12,6 +12,7 @@
 #include "call_node.h"
 #include "fn_node.h"
 #include "if_node.h"
+#include "lang_type_graph.h"
 #include "literal_node.h"
 #include "program_node.h"
 #include "ret_node.h"
@@ -22,6 +23,7 @@
 
 class TypeVisitor: public Visitor<PtrLType> {
   public:
+      LangTypeGraph ltg;
     PtrLType visit(std::shared_ptr<ASTNode>) override;
     PtrLType visit(std::shared_ptr<AssignNode>) override;
     PtrLType visit(std::shared_ptr<BinaryExprNode>) override;
