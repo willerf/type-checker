@@ -1,222 +1,155 @@
 
 #include "type_visitor.h"
-#include "assign_node.h"
-#include "ast_node.h"
-#include "binary_expr_node.h"
-#include "call_node.h"
-#include "fn_node.h"
-#include "if_node.h"
-#include "lang_type.h"
-#include "literal_node.h"
-#include "program_node.h"
-#include "ret_node.h"
-#include "stmt_block_node.h"
-#include "unary_expr_node.h"
-#include "var_access_node.h"
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 #include <memory>
+#include "binary_expr_node.h"
+#include "lang_type.h"
+#include "unary_expr_node.h"
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
+
+
+PtrLType TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
     std::cerr << "TypeVisitor error" << std::endl;
-    return std::variant<LPrim, LCustom>();
+    exit(1);
 }
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
-    auto expr_type_info = node->rhs->accept(*this);
+PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
+    auto lhs_type = node->lhs.impl->ptr_ltype;
     if (node->declaration) {
-        node->lhs.impl->type_info = expr_type_info; 
+        ltg.add_type(lhs_type);
     }
-    else {
-        if (node->lhs.impl->type_info != expr_type_info) {
-            std::cerr << "Assignment error on line " << node->line_no << std::endl;
-            std::cerr << "Attempting to assign " << to_string(expr_type_info) << " to " << to_string(node->lhs.impl->type_info) << std::endl;
-            exit(1);
-        }
-    }
-    return LPrim::Generic;
+    auto rhs_type = node->rhs->accept(*this);
+    ltg.union_types(lhs_type, rhs_type);
+    return make_lt(LPrim::Invalid);
 }
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
-    auto lhs = node->lhs->accept(*this);
-    auto rhs = node->rhs->accept(*this);
-    if (std::holds_alternative<LPrim>(lhs) && std::get<LPrim>(lhs) == LPrim::Generic) {
-        lhs = rhs;
-    }
-    if (std::holds_alternative<LPrim>(rhs) && std::get<LPrim>(rhs) == LPrim::Generic) {
-        rhs = lhs;
-    }
-    if (lhs != rhs) {
-        std::cerr << "Binary expression error on line " << node->line_no << std::endl;
-        std::cerr << "Invalid use of operator: " << to_string(lhs) << " " << to_string(node->op) << " " << to_string(rhs) << std::endl;
-        exit(1);
-    }
-    static std::set<BinaryOp> s1 = {BinaryOp::EQ, BinaryOp::GE};
-    static std::set<BinaryOp> s2 = {BinaryOp::GT, BinaryOp::LE, BinaryOp::LT, BinaryOp::NE};
-    static std::set<BinaryOp> s3 = {BinaryOp::PLUS, BinaryOp::MINUS, BinaryOp::TIMES, BinaryOp::DIVIDE, BinaryOp::MOD};
-    static std::set<BinaryOp> s4 = {BinaryOp::OR, BinaryOp::AND};
-    switch (std::get<LPrim>(lhs)) {
-        case LPrim::Int:
-            if (s1.contains(node->op) || s2.contains(node->op)) {
-                return LPrim::Bool;
-            }
-            if (s3.contains(node->op)) {
-                return LPrim::Int;
-            }
-            std::cerr << "Binary expression error on line " << node->line_no << std::endl;
-            std::cerr << "Invalid use of operator: " << to_string(lhs) << " " << to_string(node->op) << " " << to_string(rhs) << std::endl;
-            exit(1);
-        case LPrim::Bool:
-            if (s1.contains(node->op) || s4.contains(node->op)) {
-                return LPrim::Bool;
-            }
-            std::cerr << "Binary expression error on line " << node->line_no << std::endl;
-            std::cerr << "Invalid use of operator: " << to_string(lhs) << " " << to_string(node->op) << " " << to_string(rhs) << std::endl;
-            exit(1);
-        case LPrim::Generic:
-            if (s1.contains(node->op) || s2.contains(node->op) || s4.contains(node->op)) {
-                return LPrim::Bool;
-            }
-            if (s3.contains(node->op)) {
-                return LPrim::Int;
-            }
-        default:
-            std::cerr << "BinaryExpr error" << std::endl;
-            exit(1);
-    }
-}
+std::map<BinaryOp, LTypeClass> bin_op_tc = {
+    {BinaryOp::EQ, LTypeClass::Eq},
+    {BinaryOp::NE, LTypeClass::Eq},
+    {BinaryOp::LT, LTypeClass::Ord},
+    {BinaryOp::GT, LTypeClass::Ord},
+    {BinaryOp::LE, LTypeClass::Ord},
+    {BinaryOp::GE, LTypeClass::Ord},
+    {BinaryOp::PLUS, LTypeClass::Plus},
+    {BinaryOp::MINUS, LTypeClass::Minus},
+    {BinaryOp::TIMES, LTypeClass::Star},
+    {BinaryOp::DIVIDE, LTypeClass::Slash},
+    {BinaryOp::MOD, LTypeClass::Percent}
+};
+std::set<BinaryOp> comp_ops = {
+    BinaryOp::EQ, BinaryOp::NE, BinaryOp::LT, BinaryOp::GT, BinaryOp::LE, BinaryOp::GE
+};
+PtrLType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
+    auto lhs_type = node->lhs->accept(*this);
+    auto rhs_type = node->rhs->accept(*this);
+    ltg.union_types(lhs_type, rhs_type);
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<CallNode> node) {
-    std::vector<std::variant<LPrim, LCustom>> args;
-    for (auto expr : node->args) {
-        args.push_back(expr->accept(*this));
-    }
-    if (!m.contains(node->proc_name)) {
-        std::cerr << "Invalid function call on line " << node->line_no << std::endl;
-        exit(1);
-    }
-    auto fn = m[node->proc_name];
-    if (completed.contains({fn, args})) {
-        return completed[{fn, args}];
-    }
-    else {
-        if (args.size() != fn->params.size()) {
-            std::cerr << "Invalid function call on line " << node->line_no << std::endl;
-            exit(1);
-        }
-        for (int i = 0; i < args.size(); i++) {
-            fn->params[i].impl->type_info = args[i];
-        }
-        completed[{fn, args}] = LPrim::Generic;
-        auto result = fn->accept(*this);
-        completed[{fn, args}] = result;
-        return result;
-    }
-}
-
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<FnNode> node) {
-    return node->stmts->accept(*this);
-}
-
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<IfNode> node) {
-    auto condition = node->condition->accept(*this);
-    if (!(std::holds_alternative<LPrim>(condition) && std::get<LPrim>(condition) == LPrim::Bool)) {
-        std::cerr << "Invalid condition on line " << node->line_no << std::endl;
-        std::cerr << "Expected bool, found " << to_string(condition) << std::endl;
-        exit(1);
-    }
-    auto thens = node->thens->accept(*this);
-    auto elses = node->elses->accept(*this);
-    if (std::holds_alternative<LPrim>(thens) && std::get<LPrim>(thens) == LPrim::Generic) {
-        return elses;
-    }
-    if (std::holds_alternative<LPrim>(elses) && std::get<LPrim>(elses) == LPrim::Generic) {
-        return thens;
-    }
-    if (thens == elses) {
-        return thens;
-    }
-    std::cerr << "Inconsistent return types found in if else on line " << node->line_no << std::endl;
-    std::cerr << "True branch returning " << to_string(thens) << ", false branch returning " << to_string(elses) << std::endl;
-    exit(1);
-}
-
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
-    switch (node->literal_type) {
-        case LiteralType::Bool:
-            return LPrim::Bool;
-        case LiteralType::Int:
-            return LPrim::Int;
-    }
-    std::cerr << "Literal error" << std::endl;
-    exit(1);
-}
-
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
-    m["print"] = make_fn("print", {Variable("var")}, make_ret(make_literal(LiteralType::Bool, "true")));
-    m["println"] = make_fn("println", {Variable("var")}, make_ret(make_literal(LiteralType::Bool, "true")));
-    for (auto node : node->fns) {
-        auto fn = std::dynamic_pointer_cast<FnNode>(node);
-        if (fn) {
-            m[fn->name] = fn;
+    if (bin_op_tc.contains(node->op)) {
+        auto result_type = ltg.add_tc(lhs_type, bin_op_tc.at(node->op));
+        if (comp_ops.contains(node->op)) {
+            auto bool_type = make_lt(LPrim::Bool);
+            return ltg.add_type(bool_type);
         }
         else {
-            std::cerr << "Program error" << std::endl;
-            exit(1);
+            return result_type;
         }
-    }
-    if (m.contains("main")) {
-        m["main"]->accept(*this);
     }
     else {
-        std::cerr << "Missing main function" << std::endl;
-        exit(1);
+        auto bool_type = make_lt(LPrim::Bool);
+        return ltg.add_type(bool_type);
     }
-    return LPrim::Generic;
 }
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<RetNode> node) {
-    return node->expr->accept(*this);
+PtrLType TypeVisitor::visit(std::shared_ptr<CallNode> node) {
+    std::vector<PtrLType> arg_types;
+    for (auto arg : node->args) {
+        arg_types.push_back(arg->accept(*this));
+    }
+    return ltg.add_call(node->proc_name, arg_types);
 }
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
-    std::variant<LPrim, LCustom> result = LPrim::Generic;
-    size_t line_no = SIZE_T_MAX;
+PtrLType TypeVisitor::visit(std::shared_ptr<FnNode> node) {
+    for (auto param : node->params) {
+        ltg.add_type(param.impl->ptr_ltype);
+    }
+    ltg.add_type(node->ret_type);
+    node->stmts->accept(*this);
+    return make_lt(LPrim::Invalid);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<IfNode> node) {
+    auto cond_type = node->condition->accept(*this);
+    node->thens->accept(*this);
+    node->elses->accept(*this);
+    auto bool_type = make_lt(LPrim::Bool);
+    ltg.add_type(bool_type);
+    return ltg.union_types(cond_type, bool_type);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
+    PtrLType literal_type = nullptr;
+    switch (node->literal_type) {
+        case LiteralType::Int:
+            literal_type = make_lt(LPrim::Int);
+            break;
+        case LiteralType::Bool:
+            literal_type = make_lt(LPrim::Bool);
+            break;
+    }
+    assert(literal_type);
+    ltg.add_type(literal_type);
+    return literal_type;
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
+    for (auto node : node->fns) {
+        auto fn = std::static_pointer_cast<FnNode>(node);
+        fn_map[fn->name] = fn;
+        ltg.add_fn(fn->name, fn);
+    }
+
+    for (auto node : node->fns) {
+        auto fn = std::static_pointer_cast<FnNode>(node);
+        curr_fn = fn;
+        node->accept(*this);
+    }
+
+    ltg.reduce();
+
+    return make_lt(LPrim::Invalid);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<RetNode> node) {
+    auto expr_type = node->expr->accept(*this);
+    auto ret_type = curr_fn->ret_type;
+    return ltg.union_types(expr_type, ret_type);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
     for (auto stmt : node->stmts) {
-        auto stmt_type = stmt->accept(*this); 
-        if (!(std::holds_alternative<LPrim>(stmt_type) && std::get<LPrim>(stmt_type) == LPrim::Generic)) {
-            if (std::holds_alternative<LPrim>(result) && std::get<LPrim>(result) == LPrim::Generic) {
-                result = stmt_type;
-                line_no = stmt->line_no;
-            }
-            else {
-                if (result != stmt_type) {
-                    std::cerr << "Inconsistent return types found" << std::endl;
-                    std::cerr << "Line " << line_no << ": " << to_string(result);
-                    std::cerr << "Line " << stmt->line_no << ": " << to_string(stmt_type);
-                    exit(1);
-                }
-            }
-        }
+        stmt->accept(*this);
     }
-    return result;
+    return make_lt(LPrim::Invalid);
 }
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
-    auto expr = node->expr->accept(*this);
+PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
+    auto expr_type = node->expr->accept(*this);
+        
     switch (node->op) {
         case UnaryOp::NOT:
-            if (std::holds_alternative<LPrim>(expr) && std::get<LPrim>(expr) == LPrim::Bool) {
-                return LPrim::Bool;
-            }
-            std::cerr << "Unary expression error on line " << node->line_no << std::endl;
-            std::cerr << "Invalid use of operator: " << to_string(node->op) << " " << to_string(expr) << std::endl;
-            exit(1);
+            auto bool_type = make_lt(LPrim::Bool);
+            ltg.add_type(bool_type);
+            return ltg.union_types(expr_type, bool_type);
     }
+
+    std::cerr << "UnaryExpr error" << std::endl;
+    exit(1);
 }
 
-std::variant<LPrim, LCustom> TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
-    return node->var.impl->type_info;
+PtrLType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
+    return node->var.impl->ptr_ltype;
 }
+
 

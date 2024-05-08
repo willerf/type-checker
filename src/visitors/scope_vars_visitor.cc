@@ -28,6 +28,10 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> no
         return result;
     }
     else {
+        if (!scopes.top().contains(name)) {
+            std::cerr << "Unknown variable " << name << " on line " << node->line_no << std::endl; 
+            exit(1);
+        }
         auto lhs = scopes.top()[name];
         auto result = make_assign(node->declaration, lhs, rhs);
         result->line_no = node->line_no;
@@ -46,7 +50,7 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<FnNode> node) 
         scope[v.impl->name] = v;
     }
     scopes.push(scope);
-    auto result = make_fn(node->name, params, node->stmts->accept(*this));
+    auto result = make_fn(node->name, params, node->stmts->accept(*this), LPrim::Generic);
     result->line_no = node->line_no;
     return result;
 }

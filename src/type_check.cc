@@ -1,11 +1,13 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <cassert>
 
-#include "eval_visitor.h"
 #include "extract_s.h"
+#include "lang_type.h"
 #include "scope_vars_visitor.h"
 #include "type_check.h"
 #include "lang_scanning.h"
@@ -33,14 +35,24 @@ void type_check(std::vector<std::string> input_file_paths) {
         TypeVisitor tv;
         program_node2->accept(tv);
 
-        EvalVisitor ev;
-        program_node->accept(ev);
-        for (auto& [name, func] : ev.funcs) {
-            if (name == "main") {
-                auto result = func({});
-                std::cout << "Result: " << result << std::endl;
+
+        for (auto node : std::static_pointer_cast<ProgramNode>(program_node2)->fns) {
+            std::string output = "";
+            auto fn = std::static_pointer_cast<FnNode>(node);
+            output += fn->name;
+            output += ": (";
+            for (auto param : fn->params) {
+                output += to_string(param.impl->ptr_ltype) + ", ";
             }
+            if (!fn->params.empty()) {
+                output.pop_back();
+                output.pop_back();
+            }
+            output += ") -> ";
+            output += to_string(fn->ret_type);
+            std::cout << output << std::endl; 
         }
+
     }
 }
 
