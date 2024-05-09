@@ -1,0 +1,13 @@
+
+#pragma once
+
+#include <functional>
+#include <map>
+#include <variant>
+
+#include "variable.h"
+
+typedef std::variant<std::monostate, int, bool, char, std::string> LDataValue;
+typedef std::map<std::shared_ptr<VarImpl>, LDataValue> LEnvironment;
+typedef std::function<LDataValue(LEnvironment&)> EvalFunc;
+typedef std::function<LDataValue(std::vector<LDataValue>)> CallableFunc;

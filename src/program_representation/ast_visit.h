@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "ast_clone.h"
+#include "eval_visitor_types.h"
 
 template<typename T>
 struct ASTVisit: ASTClone<T>, std::enable_shared_from_this<ASTVisit<T>> {
@@ -19,9 +20,7 @@ struct ASTVisit: ASTClone<T>, std::enable_shared_from_this<ASTVisit<T>> {
         )));
     }
 
-    std::function<int(std::map<std::string, int>&)>
-    accept(Visitor<std::function<int(std::map<std::string, int>&)>>& visitor
-    ) override {
+    EvalFunc accept(Visitor<EvalFunc>& visitor) override {
         return visitor.visit(std::static_pointer_cast<T>(this->shared_from_this(
         )));
     }

@@ -8,6 +8,7 @@
 #include "scanning.h"
 #include "scope_vars_visitor.h"
 #include "type_check.h"
+#include "unreachable_error.h"
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> input_file_paths;
@@ -30,6 +31,9 @@ int main(int argc, char* argv[]) {
     } catch (const TypeError& e) {
         std::cerr << "ERROR: Incompatible types `" << to_string(e.t1)
                   << "` and `" << to_string(e.t2) << "`" << std::endl;
+    } catch (const UnreachableError& e) {
+        std::cerr << e.file << ":" << e.line << " " << e.func << std::endl;
+        throw;
     }
 
     return 0;
