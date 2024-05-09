@@ -5,11 +5,14 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <memory>
 
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
 #include "call_node.h"
+#include "eval_visitor_types.h"
+#include "eval_visitor_utils.h"
 #include "fn_node.h"
 #include "if_node.h"
 #include "literal_node.h"
@@ -19,239 +22,223 @@
 #include "unary_expr_node.h"
 #include "var_access_node.h"
 #include "visitor.h"
+#include "while_node.h"
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<ASTNode> node) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<ASTNode> node) {
     std::cerr << "EvalVisitor error" << std::endl;
-    return [](auto& m) { return 0; };
+    return [](auto& env) { return 0; };
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto expr = node->rhs->accept(*this);
-    auto name = node->lhs.impl->name;
-    return [=](auto& m) {
-        m[name] = expr(m);
-        return INT_MIN;
+    auto var = node->lhs.impl;
+    return [=](auto& env) {
+        env[var] = expr(env);
+        return LDataValue {std::monostate {}};
     };
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     auto lhs = node->lhs->accept(*this);
     auto rhs = node->rhs->accept(*this);
     switch (node->op) {
         case BinaryOp::OR:
-            return [=](auto& m) { return lhs(m) || rhs(m); };
+            return [=](auto& env) { return lhs(env) || rhs(env); };
         case BinaryOp::AND:
-            return [=](auto& m) { return lhs(m) && rhs(m); };
+            return [=](auto& env) { return lhs(env) && rhs(env); };
         case BinaryOp::EQ:
-            return [=](auto& m) { return lhs(m) == rhs(m); };
+            return [=](auto& env) { return lhs(env) == rhs(env); };
         case BinaryOp::NE:
-            return [=](auto& m) { return lhs(m) != rhs(m); };
+            return [=](auto& env) { return lhs(env) != rhs(env); };
         case BinaryOp::LT:
-            return [=](auto& m) { return lhs(m) < rhs(m); };
+            return [=](auto& env) { return lhs(env) < rhs(env); };
         case BinaryOp::GT:
-            return [=](auto& m) { return lhs(m) > rhs(m); };
+            return [=](auto& env) { return lhs(env) > rhs(env); };
         case BinaryOp::LE:
-            return [=](auto& m) { return lhs(m) <= rhs(m); };
+            return [=](auto& env) { return lhs(env) <= rhs(env); };
         case BinaryOp::GE:
-            return [=](auto& m) { return lhs(m) >= rhs(m); };
+            return [=](auto& env) { return lhs(env) >= rhs(env); };
         case BinaryOp::PLUS:
-            return [=](auto& m) { return lhs(m) + rhs(m); };
+            return [=](auto& env) { return lhs(env) + rhs(env); };
         case BinaryOp::MINUS:
-            return [=](auto& m) { return lhs(m) - rhs(m); };
+            return [=](auto& env) { return lhs(env) - rhs(env); };
         case BinaryOp::TIMES:
-            return [=](auto& m) { return lhs(m) * rhs(m); };
+            return [=](auto& env) { return lhs(env) * rhs(env); };
         case BinaryOp::DIVIDE:
-            return [=](auto& m) { return lhs(m) / rhs(m); };
+            return [=](auto& env) { return lhs(env) / rhs(env); };
         case BinaryOp::MOD:
-            return [=](auto& m) { return lhs(m) % rhs(m); };
+            return [=](auto& env) { return lhs(env) % rhs(env); };
     }
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<CallNode> node) {
-    auto func = funcs.at(node->func_name);
-    std::vector<std::function<int(std::map<std::string, int>&)>> args;
-    for (auto& arg : node->args) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<CallNode> node) {
+    auto func = func_map.at(node->func_name);
+    std::vector<EvalFunc> args;
+    for (auto arg : node->args) {
         args.push_back(arg->accept(*this));
     }
-    return [=](auto& m) {
-        std::vector<int> arg_vals;
+    return [=](auto& env) {
+        std::vector<LDataValue> arg_vals;
         for (auto& arg : args) {
-            arg_vals.push_back(arg(m));
+            arg_vals.push_back(arg(env));
         }
-        return func(arg_vals);
+        return (*func)(arg_vals);
     };
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<FnNode> node) {
-    auto func_ptr =
-        std::make_shared<std::shared_ptr<std::function<int(std::vector<int>)>>>(
-            nullptr
-        );
-    auto func_wrapper = [=](auto args) {
-        assert(*func_ptr);
-        return (**func_ptr)(args);
-    };
-    funcs[node->name] = func_wrapper;
+EvalFunc EvalVisitor::visit(std::shared_ptr<FnNode> node) {
     auto stmtblock = node->stmts->accept(*this);
-    std::vector<std::string> params;
+    std::vector<std::shared_ptr<VarImpl>> params;
     for (auto param : node->params) {
-        params.push_back(param.impl->name);
+        params.push_back(param.impl);
     }
     auto func = [=](auto args) {
         assert(args.size() == params.size());
-        std::map<std::string, int> m;
+        LEnvironment m;
         for (int i = 0; i < params.size(); i++) {
             m[params.at(i)] = args.at(i);
         }
         return stmtblock(m);
     };
-    (*func_ptr) = std::make_shared<std::function<int(std::vector<int>)>>(func);
-    return [](auto& m) { return 0; };
+    (*func_map[node->name]) = func;
+    return [](auto& env) { return 0; };
 }
 
-/*
-std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<FnNode> node) {
-    auto stmtblock = node->stmts->accept(*this);
-    std::vector<std::string> params;
-    for (auto param : node->params) {
-        params.push_back(*param.name);
-    }
-    auto func = [=](auto args){
-        assert(args.size() == params.size());
-        std::map<std::string, int> m;
-        for (int i = 0; i < params.size(); i++) {
-            m[params.at(i)] = args.at(i);
-        }
-        return stmtblock(m);
-    };
-    funcs[node->name] = func;
-    return [](auto& m){ return 0; };
-}
-*/
-
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<IfNode> node) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<IfNode> node) {
     auto condition = node->condition->accept(*this);
     auto thens = node->thens->accept(*this);
-    std::function<int(std::map<std::string, int>&)> elses = nullptr;
+    EvalFunc elses = nullptr;
     if (node->elses) {
         elses = node->elses->accept(*this);
     }
     if (elses) {
-        return [=](auto& m) {
-            if (condition(m)) {
-                return thens(m);
+        return [=](auto& env) {
+            auto result = condition(env);
+            if (std::get<bool>(result)) {
+                return thens(env);
             } else {
-                return elses(m);
+                return elses(env);
             }
         };
     } else {
-        return [=](auto& m) {
-            if (condition(m)) {
-                return thens(m);
+        return [=](auto& env) {
+            auto result = condition(env);
+            if (std::get<bool>(result)) {
+                return thens(env);
             }
-            return 0;
+            return LDataValue {std::monostate {}};
         };
     }
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<LiteralNode> node) {
-    int val;
+EvalFunc EvalVisitor::visit(std::shared_ptr<LiteralNode> node) {
+    LDataValue val;
     switch (node->literal_type) {
         case LiteralType::Int:
             val = stoi(node->value);
             break;
         case LiteralType::Bool:
-            val = node->value == "true" ? 1 : 0;
+            val = node->value == "true";
+            break;
+        case LiteralType::Char:
+            val = node->value.at(0);
+            break;
+        case LiteralType::Str:
+            val = node->value;
             break;
     }
-    return [=](auto& m) { return val; };
+    return [=](auto& env) { return val; };
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
-    funcs["print"] = [](auto args) {
-        std::cout << args.at(0);
-        return true;
-    };
-    funcs["println"] = [](auto args) {
-        std::cout << args.at(0) << std::endl;
-        return true;
-    };
-    for (auto fn : node->fns) {
-        fn->accept(*this);
+EvalFunc EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
+    for (auto fn_node : node->fns) {
+        auto fn = std::static_pointer_cast<FnNode>(fn_node);
+        func_map[fn->name] = std::make_shared<CallableFunc>(nullptr);
     }
-    return [](auto& m) { return 0; };
+    for (auto fn_node : node->fns) {
+        fn_node->accept(*this);
+    }
+    (*func_map["print"]) = [=](auto args) {
+        std::cout << to_string(args.at(0));
+        return LDataValue {std::monostate {}};
+    };
+    (*func_map["println"]) = [=](auto args) {
+        std::cout << to_string(args.at(0)) << std::endl;
+        return LDataValue {std::monostate {}};
+    };
+    return [](auto& env) { return 0; };
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<RetNode> node) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<RetNode> node) {
     return node->expr->accept(*this);
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
-    std::vector<std::function<int(std::map<std::string, int>&)>> stmts;
+EvalFunc EvalVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
+    std::vector<EvalFunc> stmts;
     for (auto stmt : node->stmts) {
         stmts.push_back(stmt->accept(*this));
     }
-    return [=](auto& m) {
-        std::map<std::string, int> m_copy = m;
+    return [=](auto& env) {
+        auto env_copy = env;
         for (auto stmt : stmts) {
-            int val = stmt(m);
-            if (val != INT_MIN) {
-                std::vector<std::pair<std::string, int>> result;
+            auto val = stmt(env);
+            if (!std::holds_alternative<std::monostate>(val)) {
+                LEnvironment result;
                 std::set_intersection(
-                    m.begin(),
-                    m.end(),
-                    m_copy.begin(),
-                    m_copy.end(),
-                    std::back_inserter(result),
+                    env.begin(),
+                    env.end(),
+                    env_copy.begin(),
+                    env_copy.end(),
+                    std::inserter(result, result.begin()),
                     [](const auto& a, const auto& b) {
                         return a.first < b.first;
                     }
                 );
-                m.clear();
-                for (const auto& p : result) {
-                    m.insert(p);
-                }
+                env.clear();
+                env = std::move(result);
                 return val;
             }
         }
-        std::vector<std::pair<std::string, int>> result;
+        LEnvironment result;
         std::set_intersection(
-            m.begin(),
-            m.end(),
-            m_copy.begin(),
-            m_copy.end(),
-            std::back_inserter(result),
+            env.begin(),
+            env.end(),
+            env_copy.begin(),
+            env_copy.end(),
+            std::inserter(result, result.begin()),
             [](const auto& a, const auto& b) { return a.first < b.first; }
         );
-        m.clear();
-        for (const auto& p : result) {
-            m.insert(p);
-        }
-        return INT_MIN;
+        env.clear();
+        env = std::move(result);
+        return LDataValue {std::monostate {}};
     };
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
+EvalFunc EvalVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr = node->expr->accept(*this);
     switch (node->op) {
         case UnaryOp::NOT:
-            return [=](auto& m) { return !expr(m); };
+            return [=](auto& env) { return !expr(env); };
     }
 }
 
-std::function<int(std::map<std::string, int>&)>
-EvalVisitor::visit(std::shared_ptr<VarAccessNode> node) {
-    auto name = node->var.impl->name;
-    return [=](auto& m) { return m[name]; };
+EvalFunc EvalVisitor::visit(std::shared_ptr<VarAccessNode> node) {
+    auto var = node->var.impl;
+    return [=](auto& env) { return env[var]; };
+}
+
+EvalFunc EvalVisitor::visit(std::shared_ptr<WhileNode> node) {
+    auto condition = node->condition->accept(*this);
+    auto body = node->body->accept(*this);
+    return [=](auto& env) {
+        auto result = condition(env);
+        while (std::get<bool>(result)) {
+            auto val = body(env);
+            if (!std::holds_alternative<std::monostate>(val)) {
+                return val;
+            }
+            result = condition(env);
+        }
+        return LDataValue {std::monostate {}};
+    };
 }

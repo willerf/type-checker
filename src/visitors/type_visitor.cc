@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "binary_expr_node.h"
+#include "fn_node.h"
 #include "lang_type.h"
 #include "unary_expr_node.h"
 #include "visitor.h"
@@ -116,6 +117,10 @@ PtrLType TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
 PtrLType TypeVisitor::visit(std::shared_ptr<ProgramNode> node) {
     for (auto node : node->fns) {
         auto fn = std::static_pointer_cast<FnNode>(node);
+        if (fn_map.contains(fn->name)) {
+            std::cerr << "ERROR: Duplicate function names found: " << fn->name
+                      << std::endl;
+        }
         fn_map[fn->name] = fn;
         ltg.add_fn(fn->name, fn);
     }

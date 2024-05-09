@@ -4,6 +4,8 @@
 #include <iostream>
 #include <iterator>
 
+#include "unreachable_error.h"
+
 TypeError::TypeError(const LTypeImpl& t1, const LTypeImpl& t2) :
     t1 {t1},
     t2 {t2} {}
@@ -107,7 +109,7 @@ std::string to_string(LTypeImpl ltypeimpl) {
     if (std::holds_alternative<LCustom>(ltypeimpl)) {
         return to_string(std::get<LCustom>(ltypeimpl));
     }
-    return "Unreachable";
+    UNREACHABLE;
 }
 
 std::string to_string(LType ltype) {

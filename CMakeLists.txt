@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(type_checker_lib STATIC
+    src/exceptions/unreachable_error.cc
     src/lang/lang_parsing.cc
     src/lang/lang_scanning.cc
     src/lang/state.cc
@@ -37,12 +38,15 @@ add_library(type_checker_lib STATIC
     src/types/lang_type.cc
     src/types/lang_type_graph.cc
     src/types/lang_type_utils.cc
+    src/visitors/eval_visitor.cc
+    src/visitors/eval_visitor_utils.cc
     src/visitors/scope_vars_visitor.cc
     src/visitors/type_visitor.cc
     src/type_check.cc
 )
 
 target_include_directories(type_checker_lib PUBLIC
+    src/exceptions
     src/lex_parse
     src/lang
     src/post_processing
