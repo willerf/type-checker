@@ -34,4 +34,3 @@ std::string to_string(LTypeImpl ltypeimpl);
 std::string to_string(LType ltype);
 std::string to_string(PtrLType ptrltype);
 
-bool compatible(LPrim lprim, LGeneric lgeneric);
