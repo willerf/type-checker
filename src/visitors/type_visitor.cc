@@ -25,7 +25,7 @@ PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
     return make_lt(LPrim::Invalid);
 }
 
-std::map<BinaryOp, LTypeClass> bin_op_tc = {
+static std::map<BinaryOp, LTypeClass> bin_op_tc = {
     {BinaryOp::EQ, LTypeClass::Eq},
     {BinaryOp::NE, LTypeClass::Eq},
     {BinaryOp::LT, LTypeClass::Ord},
@@ -37,7 +37,7 @@ std::map<BinaryOp, LTypeClass> bin_op_tc = {
     {BinaryOp::TIMES, LTypeClass::Star},
     {BinaryOp::DIVIDE, LTypeClass::Slash},
     {BinaryOp::MOD, LTypeClass::Percent}};
-std::set<BinaryOp> comp_ops = {
+static std::set<BinaryOp> comp_ops = {
     BinaryOp::EQ,
     BinaryOp::NE,
     BinaryOp::LT,

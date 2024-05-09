@@ -45,7 +45,7 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                 }
             },
             [&](const LGeneric& t1, const LGeneric& t2) {
-                LGeneric tcs;
+                LGeneric tcs = {};
                 tcs.insert(t1.begin(), t1.end());
                 tcs.insert(t2.begin(), t2.end());
                 result_type = make_lt(tcs);

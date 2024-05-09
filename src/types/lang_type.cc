@@ -20,8 +20,7 @@ PtrLType make_lt(LTypeClass tc) {
 }
 
 PtrLType make_lt(LGeneric tcs) {
-    LGeneric tmp = {};
-    auto ltype = std::make_shared<LTypeImpl>(tmp);
+    auto ltype = std::make_shared<LTypeImpl>(tcs);
     return std::make_shared<LType>(ltype);
 }
 
