@@ -138,14 +138,26 @@ std::function<int(std::map<std::string, int>&)>
 EvalVisitor::visit(std::shared_ptr<IfNode> node) {
     auto condition = node->condition->accept(*this);
     auto thens = node->thens->accept(*this);
-    auto elses = node->elses->accept(*this);
-    return [=](auto& m) {
-        if (condition(m)) {
-            return thens(m);
-        } else {
-            return elses(m);
-        }
-    };
+    std::function<int(std::map<std::string, int>&)> elses = nullptr;
+    if (node->elses) {
+        elses = node->elses->accept(*this);
+    }
+    if (elses) {
+        return [=](auto& m) {
+            if (condition(m)) {
+                return thens(m);
+            } else {
+                return elses(m);
+            }
+        };
+    } else {
+        return [=](auto& m) {
+            if (condition(m)) {
+                return thens(m);
+            }
+            return 0;
+        };
+    }
 }
 
 std::function<int(std::map<std::string, int>&)>

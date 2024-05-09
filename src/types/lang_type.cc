@@ -39,6 +39,8 @@ std::string to_string(LPrim lprim) {
     switch (lprim) {
         case LPrim::Invalid:
             return "invalid";
+        case LPrim::Unit:
+            return "unit";
         case LPrim::Int:
             return "int";
         case LPrim::Bool:

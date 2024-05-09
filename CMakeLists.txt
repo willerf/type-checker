@@ -33,6 +33,7 @@ add_library(type_checker_lib STATIC
     src/program_representation/unary_expr_node.cc
     src/program_representation/var_access_node.cc
     src/program_representation/variable.cc
+    src/program_representation/while_node.cc
     src/types/lang_type.cc
     src/types/lang_type_graph.cc
     src/types/lang_type_utils.cc

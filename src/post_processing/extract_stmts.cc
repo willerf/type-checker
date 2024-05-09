@@ -12,6 +12,7 @@
 #include "if_node.h"
 #include "parse_node.h"
 #include "ret_node.h"
+#include "while_node.h"
 
 std::shared_ptr<ASTNode> extract_stmt(ParseNode root) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::stmt);
@@ -55,12 +56,35 @@ std::shared_ptr<ASTNode> extract_stmt(ParseNode root) {
         auto elses = extract_stmtblock(stmtblock_elses);
 
         result = make_if(condition, thens, elses);
+    } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::IF, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock}) {
+        // extract if statements
+        ParseNode expr = root.children.at(2);
+        std::shared_ptr<ASTNode> condition = extract_expr(expr);
+
+        ParseNode stmtblock_thens = root.children.at(4);
+        auto thens = extract_stmtblock(stmtblock_thens);
+
+        result = make_if(condition, thens, nullptr);
+    } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::WHILE, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock}) {
+        // extract while statements
+        ParseNode expr = root.children.at(2);
+        std::shared_ptr<ASTNode> condition = extract_expr(expr);
+
+        ParseNode stmtblock_body = root.children.at(4);
+        auto body = extract_stmtblock(stmtblock_body);
+
+        result = make_while(condition, body);
     } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::RET, NonTerminal::expr, Terminal::SEMI}) {
         // extract return statements
         ParseNode expr_node = root.children.at(1);
         std::shared_ptr<ASTNode> expr = extract_expr(expr_node);
 
         result = make_ret(expr);
+    } else if (prod == std::vector<State> {NonTerminal::stmt, NonTerminal::expr, Terminal::SEMI}) {
+        ParseNode expr_node = root.children.at(0);
+        std::shared_ptr<ASTNode> expr = extract_expr(expr_node);
+
+        result = expr;
     } else {
         std::cerr << "Invalid production found while processing stmt."
                   << std::endl;

@@ -8,6 +8,7 @@
 #include "binary_expr_node.h"
 #include "lang_type.h"
 #include "unary_expr_node.h"
+#include "visitor.h"
 
 PtrLType TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
     std::cerr << "TypeVisitor error" << std::endl;
@@ -83,7 +84,9 @@ PtrLType TypeVisitor::visit(std::shared_ptr<FnNode> node) {
 PtrLType TypeVisitor::visit(std::shared_ptr<IfNode> node) {
     auto cond_type = node->condition->accept(*this);
     node->thens->accept(*this);
-    node->elses->accept(*this);
+    if (node->elses) {
+        node->elses->accept(*this);
+    }
     auto bool_type = make_lt(LPrim::Bool);
     ltg.add_type(bool_type);
     return ltg.union_types(cond_type, bool_type);
@@ -157,4 +160,12 @@ PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
 
 PtrLType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
     return node->var.impl->ptr_ltype;
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<WhileNode> node) {
+    auto cond_type = node->condition->accept(*this);
+    node->body->accept(*this);
+    auto bool_type = make_lt(LPrim::Bool);
+    ltg.add_type(bool_type);
+    return ltg.union_types(cond_type, bool_type);
 }

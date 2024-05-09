@@ -17,6 +17,7 @@
 #include "unary_expr_node.h"
 #include "var_access_node.h"
 #include "visitor.h"
+#include "while_node.h"
 
 class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
     std::stack<std::map<std::string, Variable>> scopes;
@@ -34,6 +35,7 @@ class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
     std::shared_ptr<ASTNode> visit(std::shared_ptr<StmtBlockNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<UnaryExprNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<VarAccessNode>) override;
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<WhileNode>) override;
 };
 
 class VariableNotFoundError {

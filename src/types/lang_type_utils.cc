@@ -11,6 +11,8 @@ bool compatible(LPrim lprim, LGeneric lgeneric) {
     switch (lprim) {
         case LPrim::Invalid:
             return false;
+        case LPrim::Unit:
+            return false;
         case LPrim::Int:
             compat_set = {
                 LTypeClass::Eq,

@@ -17,6 +17,7 @@
 #include "unary_expr_node.h"
 #include "var_access_node.h"
 #include "visitor.h"
+#include "while_node.h"
 
 std::shared_ptr<ASTNode>
 ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> node) {
@@ -69,18 +70,6 @@ ScopedVarsVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
 
     scopes.pop();
     auto result = make_stmt_block(stmts);
-    result->line_no = node->line_no;
-    return result;
-}
-
-std::shared_ptr<ASTNode>
-ScopedVarsVisitor::visit(std::shared_ptr<VarAccessNode> node) {
-    auto scope = scopes.top();
-    if (!scope.contains(node->var.impl->name)) {
-        throw VariableNotFoundError(node->var.impl->name, node->line_no);
-    }
-    auto var = scope[node->var.impl->name];
-    auto result = make_var_access(var);
     result->line_no = node->line_no;
     return result;
 }
@@ -153,6 +142,27 @@ std::shared_ptr<ASTNode>
 ScopedVarsVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr = node->expr->accept(*this);
     auto result = make_unary_expr(node->op, expr);
+    result->line_no = node->line_no;
+    return result;
+}
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<VarAccessNode> node) {
+    auto scope = scopes.top();
+    if (!scope.contains(node->var.impl->name)) {
+        throw VariableNotFoundError(node->var.impl->name, node->line_no);
+    }
+    auto var = scope[node->var.impl->name];
+    auto result = make_var_access(var);
+    result->line_no = node->line_no;
+    return result;
+}
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<WhileNode> node) {
+    auto condition = node->condition->accept(*this);
+    auto body = node->body->accept(*this);
+    auto result = make_while(condition, body);
     result->line_no = node->line_no;
     return result;
 }

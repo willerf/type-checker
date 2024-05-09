@@ -2,6 +2,7 @@
 #include "lang_type_graph.h"
 
 #include <cassert>
+#include <iostream>
 
 #include "lang_type.h"
 #include "lang_type_utils.h"
@@ -97,7 +98,11 @@ PtrLType LangTypeGraph::add_tc(PtrLType ptr_ltype, LTypeClass tc) {
 
     std::visit(
         overloaded {
-            [&](LPrim& lprim) { throw TypeError(**ptr_ltype, LGeneric {tc}); },
+            [&](LPrim& lprim) {
+                if (!compatible(lprim, LGeneric {tc})) {
+                    throw TypeError(**ptr_ltype, LGeneric {tc});
+                }
+            },
             [&](LGeneric& lgeneric) { lgeneric.insert(tc); },
             [&](LCustom& lcustom) {
                 throw TypeError(**ptr_ltype, LGeneric {tc});
@@ -129,7 +134,6 @@ void LangTypeGraph::add_fn(std::string fn_name, std::shared_ptr<FnNode> fn) {
 }
 
 static void subtype(PtrLType ptr_t1, PtrLType ptr_t2) {
-
     std::visit(
         overloaded {
             [&](LPrim& t1, LPrim& t2) {
@@ -185,6 +189,12 @@ void LangTypeGraph::reduce() {
                     union_types(arg_types[i], arg_types[j]);
                 }
             }
+        }
+    }
+
+    for (auto& [_, fn] : fn_map) {
+        if (type_sets.at(type_id.at(fn->ret_type)).size() == 1) {
+            **fn->ret_type = LPrim::Unit;
         }
     }
 

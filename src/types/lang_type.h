@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 
-enum class LPrim { Invalid, Int, Bool, Char, Str };
+enum class LPrim { Invalid, Unit, Int, Bool, Char, Str };
 enum class LTypeClass { Plus, Minus, Star, Slash, Percent, Eq, Ord };
 typedef std::set<LTypeClass> LGeneric;
 struct LCustom;

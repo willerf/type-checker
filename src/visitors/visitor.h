@@ -9,6 +9,7 @@ struct BinaryExprNode;
 struct CallNode;
 struct FnNode;
 struct IfNode;
+struct WhileNode;
 struct LiteralNode;
 struct ProgramNode;
 struct RetNode;
@@ -31,6 +32,7 @@ class Visitor {
     virtual T visit(std::shared_ptr<StmtBlockNode>) = 0;
     virtual T visit(std::shared_ptr<UnaryExprNode>) = 0;
     virtual T visit(std::shared_ptr<VarAccessNode>) = 0;
+    virtual T visit(std::shared_ptr<WhileNode>) = 0;
 
     virtual ~Visitor() {}
 };
