@@ -64,4 +64,4 @@ std::vector<Token> maximal_munch_scan(std::string_view input, DFA& dfa) {
     return tokens;
 }
 
-ScanError::ScanError(size_t line_no) : line_no{line_no} {}
+ScanError::ScanError(size_t line_no) : line_no {line_no} {}

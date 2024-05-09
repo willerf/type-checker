@@ -2,6 +2,7 @@
 #pragma once
 
 #include "lang_type.h"
+
 template<class... Ts>
 struct overloaded: Ts... {
     using Ts::operator()...;

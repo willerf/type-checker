@@ -7,7 +7,7 @@
 
 #include "ast_visit.h"
 
-enum class LiteralType { Int, Bool };
+enum class LiteralType { Int, Bool, Char, Str };
 
 struct LiteralNode: ASTVisit<LiteralNode> {
     LiteralType literal_type;

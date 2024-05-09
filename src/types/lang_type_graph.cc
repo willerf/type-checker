@@ -2,6 +2,7 @@
 #include "lang_type_graph.h"
 
 #include <cassert>
+
 #include "lang_type.h"
 #include "lang_type_utils.h"
 
@@ -22,41 +23,35 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
         if (ltimpl1 == ltimpl2) {
             result_type = t1;
-        }
-        else {
+        } else {
             throw TypeError(**t1, **t2);
         }
-    }
-    else if (t1_prim) {
+    } else if (t1_prim) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
         auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
         if (compatible(ltimpl1, ltimpl2)) {
             result_type = t1;
-        }
-        else {
+        } else {
             throw TypeError(**t1, **t2);
         }
-    }
-    else if (t2_prim) {
+    } else if (t2_prim) {
         auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-        
+
         if (compatible(ltimpl2, ltimpl1)) {
             result_type = t2;
-        }
-        else {
+        } else {
             throw TypeError(**t1, **t2);
         }
-    }
-    else {
+    } else {
         auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
         auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
         LGeneric tcs;
         tcs.insert(ltimpl1.begin(), ltimpl1.end());
         tcs.insert(ltimpl2.begin(), ltimpl2.end());
-        result_type = make_lt(tcs); 
+        result_type = make_lt(tcs);
     }
 
     assert(result_type);
@@ -75,7 +70,7 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
         type_id[ptr_ltype] = result_tid;
         type_set.insert(ptr_ltype);
     }
-    
+
     type_sets[result_tid] = type_set;
     type_id[result_type] = result_tid;
     return result_type;
@@ -83,18 +78,16 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
 
 PtrLType LangTypeGraph::add_tc(PtrLType ptr_ltype, LTypeClass tc) {
     assert(type_id.contains(ptr_ltype));
-   
-    std::visit(overloaded{
-        [&](LPrim& lprim) {
-            throw TypeError(**ptr_ltype, LGeneric{tc});
-        },
-        [&](LGeneric& lgeneric) {
-            lgeneric.insert(tc);
-        },
-        [&](LCustom& lcustom) {
-            throw TypeError(**ptr_ltype, LGeneric{tc});
-        }
-    }, **ptr_ltype);
+
+    std::visit(
+        overloaded {
+            [&](LPrim& lprim) { throw TypeError(**ptr_ltype, LGeneric {tc}); },
+            [&](LGeneric& lgeneric) { lgeneric.insert(tc); },
+            [&](LCustom& lcustom) {
+                throw TypeError(**ptr_ltype, LGeneric {tc});
+            }},
+        **ptr_ltype
+    );
 
     return ptr_ltype;
 }
@@ -108,8 +101,9 @@ PtrLType LangTypeGraph::add_type(PtrLType ptr_ltype) {
     return ptr_ltype;
 }
 
-PtrLType LangTypeGraph::add_call(std::string fn_name, std::vector<PtrLType> arg_types) {
-    auto ptr_ltype = add_type(make_lt(LGeneric{}));
+PtrLType
+LangTypeGraph::add_call(std::string fn_name, std::vector<PtrLType> arg_types) {
+    auto ptr_ltype = add_type(make_lt(LGeneric {}));
     calls.push_back({ptr_ltype, fn_name, arg_types});
     return ptr_ltype;
 }
@@ -118,9 +112,7 @@ void LangTypeGraph::add_fn(std::string fn_name, std::shared_ptr<FnNode> fn) {
     fn_map[fn_name] = fn;
 }
 
-
 static void subtype(PtrLType t1, PtrLType t2) {
-
     auto t1_gen = *t1;
     auto t2_gen = *t2;
 
@@ -134,27 +126,23 @@ static void subtype(PtrLType t1, PtrLType t2) {
         if (ltimpl1 != ltimpl2) {
             throw TypeError(**t1, **t2);
         }
-    }
-    else if (t1_prim) {
+    } else if (t1_prim) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
         auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
         if (!compatible(ltimpl1, ltimpl2)) {
             throw TypeError(**t1, **t2);
         }
-    }
-    else if (t2_prim) {
+    } else if (t2_prim) {
         auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
 
-        if (compatible(ltimpl2, ltimpl1)) { 
+        if (compatible(ltimpl2, ltimpl1)) {
             *t1_gen = *t2_gen;
-        }
-        else {
+        } else {
             throw TypeError(**t1, **t2);
         }
-    }
-    else {
+    } else {
         auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
         auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
@@ -163,19 +151,19 @@ static void subtype(PtrLType t1, PtrLType t2) {
 }
 
 void LangTypeGraph::reduce() {
-
     int n = calls.size();
     for (int i = 0; i < n; i++) {
-        auto& [ret_type, fn_name, arg_types] = calls[i]; 
+        auto& [ret_type, fn_name, arg_types] = calls[i];
         auto fn = fn_map.at(fn_name);
         assert(fn->params.size() == arg_types.size());
 
         for (int i = 0; i < fn->params.size(); i++) {
-            if (type_id[fn->params[i].impl->ptr_ltype] == type_id[fn->ret_type]) {
+            if (type_id[fn->params[i].impl->ptr_ltype]
+                == type_id[fn->ret_type]) {
                 union_types(ret_type, arg_types[i]);
             }
         }
-        
+
         for (int i = 0; i < fn->params.size(); i++) {
             auto p1 = fn->params[i].impl->ptr_ltype;
             for (int j = i + 1; j < fn->params.size(); j++) {
@@ -187,10 +175,9 @@ void LangTypeGraph::reduce() {
         }
     }
 
-
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            auto& [ret_type, fn_name, arg_types] = calls[j]; 
+            auto& [ret_type, fn_name, arg_types] = calls[j];
             auto fn = fn_map.at(fn_name);
 
             subtype(ret_type, fn->ret_type);
@@ -202,4 +189,3 @@ void LangTypeGraph::reduce() {
         }
     }
 }
-

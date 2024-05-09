@@ -1,14 +1,14 @@
 
-#include <iostream>
 #include "extract_s.h"
+
 #include <cassert>
+#include <iostream>
+
 #include "ast_node.h"
 #include "extract_fns.h"
 #include "program_node.h"
 
-std::shared_ptr<ASTNode> extract_s(
-    ParseNode root
-) {
+std::shared_ptr<ASTNode> extract_s(ParseNode root) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::s);
     std::shared_ptr<ASTNode> result = nullptr;
 

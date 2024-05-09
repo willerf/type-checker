@@ -37,7 +37,7 @@ class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
 };
 
 class VariableNotFoundError {
-public:
+  public:
     const std::string name;
     const size_t line_no;
 

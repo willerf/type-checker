@@ -11,15 +11,13 @@
 #include <variant>
 #include <vector>
 
+#include "extract_params.h"
 #include "extract_stmts.h"
 #include "fn_node.h"
 #include "parse_node.h"
 #include "state.h"
-#include "extract_params.h"
 
-std::vector<std::shared_ptr<ASTNode>> extract_fns(
-    ParseNode root
-) {
+std::vector<std::shared_ptr<ASTNode>> extract_fns(ParseNode root) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::fns);
     std::vector<std::shared_ptr<ASTNode>> result;
 
@@ -46,15 +44,20 @@ std::vector<std::shared_ptr<ASTNode>> extract_fns(
     return result;
 }
 
-std::shared_ptr<ASTNode> extract_fn(
-    ParseNode root
-) {
+std::shared_ptr<ASTNode> extract_fn(ParseNode root) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::fn);
     std::shared_ptr<ASTNode> result = nullptr;
 
     std::vector<State> prod = root.get_production();
-    if (prod == std::vector<State> {NonTerminal::fn, Terminal::FN, Terminal::ID, Terminal::LPAREN, NonTerminal::optparams, Terminal::RPAREN, NonTerminal::stmtblock}) {
-
+    if (prod
+        == std::vector<State> {
+            NonTerminal::fn,
+            Terminal::FN,
+            Terminal::ID,
+            Terminal::LPAREN,
+            NonTerminal::optparams,
+            Terminal::RPAREN,
+            NonTerminal::stmtblock}) {
         // extract function name
         ParseNode id = root.children.at(1);
         std::string name = id.lexeme;
@@ -66,7 +69,7 @@ std::shared_ptr<ASTNode> extract_fn(
         ParseNode stmtblock = root.children.at(5);
         auto stmts = extract_stmtblock(stmtblock);
 
-        result = make_fn(name, params, stmts, LGeneric{});
+        result = make_fn(name, params, stmts, LGeneric {});
     } else {
         std::cerr << "Invalid production found while extracting fn."
                   << std::endl;
@@ -77,5 +80,3 @@ std::shared_ptr<ASTNode> extract_fn(
     result->line_no = root.children.at(1).line_no;
     return result;
 }
-
-

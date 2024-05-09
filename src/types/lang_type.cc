@@ -4,7 +4,9 @@
 #include <iostream>
 #include <iterator>
 
-TypeError::TypeError(const LTypeImpl& t1, const LTypeImpl& t2) : t1{t1}, t2{t2} {}
+TypeError::TypeError(const LTypeImpl& t1, const LTypeImpl& t2) :
+    t1 {t1},
+    t2 {t2} {}
 
 PtrLType make_lt(LPrim lprim) {
     auto ltype = std::make_shared<LTypeImpl>(lprim);
@@ -36,11 +38,15 @@ PtrLType make_lt(LTypeImpl ltypeimpl) {
 std::string to_string(LPrim lprim) {
     switch (lprim) {
         case LPrim::Invalid:
-            return "Invalid";
+            return "invalid";
         case LPrim::Int:
-            return "Int";
+            return "int";
         case LPrim::Bool:
-            return "Bool";
+            return "bool";
+        case LPrim::Char:
+            return "char";
+        case LPrim::Str:
+            return "str";
     }
 }
 
@@ -66,7 +72,7 @@ std::string to_string(LTypeClass tc) {
 std::string to_string(LGeneric tcs) {
     std::string result = "[";
     for (auto tc : tcs) {
-        result += to_string(tc) + ", "; 
+        result += to_string(tc) + ", ";
     }
     if (!tcs.empty()) {
         result.pop_back();
@@ -110,4 +116,3 @@ std::string to_string(LType ltype) {
 std::string to_string(PtrLType ptrltype) {
     return to_string(*ptrltype);
 }
-

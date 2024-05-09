@@ -12,12 +12,31 @@ bool compatible(LPrim lprim, LGeneric lgeneric) {
         case LPrim::Invalid:
             return false;
         case LPrim::Int:
-            compat_set = {LTypeClass::Eq, LTypeClass::Ord, LTypeClass::Plus, LTypeClass::Minus, LTypeClass::Star, LTypeClass::Slash, LTypeClass::Percent};
-            std::set_intersection(compat_set.begin(), compat_set.end(), lgeneric.begin(), lgeneric.end(), std::back_inserter(result));
-            return !result.empty();
+            compat_set = {
+                LTypeClass::Eq,
+                LTypeClass::Ord,
+                LTypeClass::Plus,
+                LTypeClass::Minus,
+                LTypeClass::Star,
+                LTypeClass::Slash,
+                LTypeClass::Percent};
+            break;
         case LPrim::Bool:
             compat_set = {LTypeClass::Eq};
-            std::set_intersection(compat_set.begin(), compat_set.end(), lgeneric.begin(), lgeneric.end(), std::back_inserter(result));
-            return !result.empty();
+            break;
+        case LPrim::Char:
+            compat_set = {LTypeClass::Eq, LTypeClass::Ord};
+            break;
+        case LPrim::Str:
+            compat_set = {LTypeClass::Eq, LTypeClass::Ord};
+            break;
     }
+    std::set_intersection(
+        compat_set.begin(),
+        compat_set.end(),
+        lgeneric.begin(),
+        lgeneric.end(),
+        std::back_inserter(result)
+    );
+    return !result.empty();
 }

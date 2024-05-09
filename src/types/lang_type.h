@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 
-enum class LPrim { Invalid, Int, Bool };
+enum class LPrim { Invalid, Int, Bool, Char, Str };
 enum class LTypeClass { Plus, Minus, Star, Slash, Percent, Eq, Ord };
 typedef std::set<LTypeClass> LGeneric;
 struct LCustom;
@@ -20,7 +20,7 @@ struct LCustom {
 };
 
 class TypeError {
-public:
+  public:
     const LTypeImpl t1;
     const LTypeImpl t2;
 
@@ -41,4 +41,3 @@ std::string to_string(LCustom lcustom);
 std::string to_string(LTypeImpl ltypeimpl);
 std::string to_string(LType ltype);
 std::string to_string(PtrLType ptrltype);
-

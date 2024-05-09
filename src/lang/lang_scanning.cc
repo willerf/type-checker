@@ -14,18 +14,17 @@
 #include "state.h"
 
 static const std::map<char, Terminal> one_char_symbols = {
-    {' ', Terminal::SPACE},     {'\t', Terminal::TAB},
-    {'\n', Terminal::NEWLINE},  {'\r', Terminal::CARRIAGERETURN},
-    {'0', Terminal::ZERO},      {'<', Terminal::LT},
-    {'>', Terminal::GT},        {'!', Terminal::NOT},
-    {'=', Terminal::ASSIGN},    {'+', Terminal::PLUS},
-    {'-', Terminal::MINUS},     {'*', Terminal::STAR},
-    {'/', Terminal::SLASH},     {'%', Terminal::PCT},
-    {'(', Terminal::LPAREN},    {')', Terminal::RPAREN},
-    {'{', Terminal::LBRACE},    {'}', Terminal::RBRACE},
-    {',', Terminal::COMMA},     {';', Terminal::SEMI},
-    {'|', Terminal::PIPE},
-    {'&', Terminal::AMPERSAND}, 
+    {' ', Terminal::SPACE},    {'\t', Terminal::TAB},
+    {'\n', Terminal::NEWLINE}, {'\r', Terminal::CARRIAGERETURN},
+    {'0', Terminal::ZERO},     {'<', Terminal::LT},
+    {'>', Terminal::GT},       {'!', Terminal::NOT},
+    {'=', Terminal::ASSIGN},   {'+', Terminal::PLUS},
+    {'-', Terminal::MINUS},    {'*', Terminal::STAR},
+    {'/', Terminal::SLASH},    {'%', Terminal::PCT},
+    {'(', Terminal::LPAREN},   {')', Terminal::RPAREN},
+    {'{', Terminal::LBRACE},   {'}', Terminal::RBRACE},
+    {',', Terminal::COMMA},    {';', Terminal::SEMI},
+    {'|', Terminal::PIPE},     {'&', Terminal::AMPERSAND},
 };
 
 static const std::map<std::string, Terminal> two_char_symbols = {
@@ -50,6 +49,14 @@ static std::optional<Terminal> transition_func(Terminal curr_state, char c) {
 
         if (isdigit(c)) {
             return Terminal::NUM;
+        }
+
+        if (c == '\'') {
+            return Terminal::CHARLITERALNF;
+        }
+
+        if (c == '\"') {
+            return Terminal::STRLITERALNF;
         }
     }
 
@@ -85,6 +92,22 @@ static std::optional<Terminal> transition_func(Terminal curr_state, char c) {
         return Terminal::COMMENT;
     }
 
+    if (curr_state == Terminal::CHARLITERALNF) {
+        if (c == '\'') {
+            return Terminal::CHARLITERAL;
+        } else {
+            return Terminal::CHARLITERALNF;
+        }
+    }
+
+    if (curr_state == Terminal::STRLITERALNF) {
+        if (c == '\"') {
+            return Terminal::STRLITERAL;
+        } else {
+            return Terminal::STRLITERALNF;
+        }
+    }
+
     if (curr_state == Terminal::NUM && isdigit(c)) {
         return Terminal::NUM;
     }
@@ -108,7 +131,9 @@ DFA make_lang_dfa() {
 
     std::set<Terminal> accepting = {
         Terminal::ID,
-        Terminal::NUM
+        Terminal::NUM,
+        Terminal::STRLITERAL,
+        Terminal::CHARLITERAL,
     };
 
     for (const auto& [key, value] : one_char_symbols) {
@@ -131,11 +156,13 @@ DFA make_lang_dfa() {
 }
 
 static const std::map<std::string, Terminal> keywords = {
-    {"fn", Terminal::FN},         {"let", Terminal::LET},
-    {"if", Terminal::IF}, 
-    {"else", Terminal::ELSE},     {"return", Terminal::RET},
+    {"fn", Terminal::FN},
+    {"let", Terminal::LET},
+    {"if", Terminal::IF},
+    {"else", Terminal::ELSE},
+    {"return", Terminal::RET},
     {"true", Terminal::TRUE},
-    {"false", Terminal::FALSE},   
+    {"false", Terminal::FALSE},
 };
 
 std::vector<Token> scan(std::string_view input) {
@@ -158,7 +185,9 @@ std::vector<Token> scan(std::string_view input) {
         Terminal::ID,
         Terminal::NUM,
         Terminal::TRUE,
-        Terminal::FALSE};
+        Terminal::FALSE,
+        Terminal::STRLITERAL,
+        Terminal::CHARLITERAL};
     static const std::set<Terminal> sep_set2 = {
         Terminal::EQ,
         Terminal::NE,

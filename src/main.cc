@@ -1,7 +1,7 @@
 
-#include <vector>
 #include <cassert>
 #include <iostream>
+#include <vector>
 
 #include "lang_type.h"
 #include "parse_earley.h"
@@ -16,17 +16,20 @@ int main(int argc, char* argv[]) {
         input_file_paths.push_back(argv[i]);
         i += 1;
     }
-    
+
     try {
         type_check(input_file_paths);
     } catch (const ScanError& e) {
-        std::cerr << "ERROR: Scanning error on line: " << e.line_no << std::endl;
+        std::cerr << "ERROR: Scanning error on line: " << e.line_no
+                  << std::endl;
     } catch (const ParseError& e) {
         std::cerr << "ERROR: Parsing error on line: " << e.line_no << std::endl;
     } catch (const VariableNotFoundError& e) {
-        std::cerr << "ERROR: Unknown variable `" << e.name << "` on line: " << e.line_no << std::endl;
+        std::cerr << "ERROR: Unknown variable `" << e.name
+                  << "` on line: " << e.line_no << std::endl;
     } catch (const TypeError& e) {
-        std::cerr << "ERROR: Incompatible types `" << to_string(e.t1) << "` and `" << to_string(e.t2) << "`" << std::endl; 
+        std::cerr << "ERROR: Incompatible types `" << to_string(e.t1)
+                  << "` and `" << to_string(e.t2) << "`" << std::endl;
     }
 
     return 0;

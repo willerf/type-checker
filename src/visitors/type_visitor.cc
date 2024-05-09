@@ -4,11 +4,10 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+
 #include "binary_expr_node.h"
 #include "lang_type.h"
 #include "unary_expr_node.h"
-
-
 
 PtrLType TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
     std::cerr << "TypeVisitor error" << std::endl;
@@ -36,11 +35,15 @@ std::map<BinaryOp, LTypeClass> bin_op_tc = {
     {BinaryOp::MINUS, LTypeClass::Minus},
     {BinaryOp::TIMES, LTypeClass::Star},
     {BinaryOp::DIVIDE, LTypeClass::Slash},
-    {BinaryOp::MOD, LTypeClass::Percent}
-};
+    {BinaryOp::MOD, LTypeClass::Percent}};
 std::set<BinaryOp> comp_ops = {
-    BinaryOp::EQ, BinaryOp::NE, BinaryOp::LT, BinaryOp::GT, BinaryOp::LE, BinaryOp::GE
-};
+    BinaryOp::EQ,
+    BinaryOp::NE,
+    BinaryOp::LT,
+    BinaryOp::GT,
+    BinaryOp::LE,
+    BinaryOp::GE};
+
 PtrLType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     auto lhs_type = node->lhs->accept(*this);
     auto rhs_type = node->rhs->accept(*this);
@@ -51,12 +54,10 @@ PtrLType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
         if (comp_ops.contains(node->op)) {
             auto bool_type = make_lt(LPrim::Bool);
             return ltg.add_type(bool_type);
-        }
-        else {
+        } else {
             return result_type;
         }
-    }
-    else {
+    } else {
         auto bool_type = make_lt(LPrim::Bool);
         return ltg.add_type(bool_type);
     }
@@ -97,6 +98,12 @@ PtrLType TypeVisitor::visit(std::shared_ptr<LiteralNode> node) {
         case LiteralType::Bool:
             literal_type = make_lt(LPrim::Bool);
             break;
+        case LiteralType::Char:
+            literal_type = make_lt(LPrim::Char);
+            break;
+        case LiteralType::Str:
+            literal_type = make_lt(LPrim::Str);
+            break;
     }
     assert(literal_type);
     ltg.add_type(literal_type);
@@ -136,7 +143,7 @@ PtrLType TypeVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
 
 PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr_type = node->expr->accept(*this);
-        
+
     switch (node->op) {
         case UnaryOp::NOT:
             auto bool_type = make_lt(LPrim::Bool);
@@ -151,5 +158,3 @@ PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
 PtrLType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
     return node->var.impl->ptr_ltype;
 }
-
-
