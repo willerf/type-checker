@@ -19,6 +19,14 @@ struct LCustom {
     bool operator==(const LCustom& other) const = default;
 };
 
+class TypeError {
+public:
+    const LTypeImpl t1;
+    const LTypeImpl t2;
+
+    TypeError(const LTypeImpl& t1, const LTypeImpl& t2);
+};
+
 PtrLType make_lt(LPrim lprim);
 PtrLType make_lt(LTypeClass tc);
 PtrLType make_lt(LGeneric tcs);

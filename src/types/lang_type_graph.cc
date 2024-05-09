@@ -2,7 +2,6 @@
 #include "lang_type_graph.h"
 
 #include <cassert>
-#include <iostream>
 #include "lang_type.h"
 #include "lang_type_utils.h"
 
@@ -25,8 +24,7 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
             result_type = t1;
         }
         else {
-            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
-            exit(1);
+            throw TypeError(**t1, **t2);
         }
     }
     else if (t1_prim) {
@@ -37,8 +35,7 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
             result_type = t1;
         }
         else {
-            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
-            exit(1);
+            throw TypeError(**t1, **t2);
         }
     }
     else if (t2_prim) {
@@ -49,8 +46,7 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
             result_type = t2;
         }
         else {
-            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
-            exit(1);
+            throw TypeError(**t1, **t2);
         }
     }
     else {
@@ -90,15 +86,13 @@ PtrLType LangTypeGraph::add_tc(PtrLType ptr_ltype, LTypeClass tc) {
    
     std::visit(overloaded{
         [&](LPrim& lprim) {
-            std::cerr << "Type error: " << to_string(ptr_ltype) << " " << to_string(tc) << std::endl;
-            exit(1);
+            throw TypeError(**ptr_ltype, LGeneric{tc});
         },
         [&](LGeneric& lgeneric) {
             lgeneric.insert(tc);
         },
         [&](LCustom& lcustom) {
-            std::cerr << "Type error: " << to_string(ptr_ltype) << " " << to_string(tc) << std::endl;
-            exit(1);
+            throw TypeError(**ptr_ltype, LGeneric{tc});
         }
     }, **ptr_ltype);
 
@@ -138,8 +132,7 @@ static void subtype(PtrLType t1, PtrLType t2) {
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
 
         if (ltimpl1 != ltimpl2) {
-            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
-            exit(1);
+            throw TypeError(**t1, **t2);
         }
     }
     else if (t1_prim) {
@@ -147,8 +140,7 @@ static void subtype(PtrLType t1, PtrLType t2) {
         auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
         if (!compatible(ltimpl1, ltimpl2)) {
-            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
-            exit(1);
+            throw TypeError(**t1, **t2);
         }
     }
     else if (t2_prim) {
@@ -159,8 +151,7 @@ static void subtype(PtrLType t1, PtrLType t2) {
             *t1_gen = *t2_gen;
         }
         else {
-            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
-            exit(1);
+            throw TypeError(**t1, **t2);
         }
     }
     else {

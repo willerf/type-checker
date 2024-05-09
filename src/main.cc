@@ -1,7 +1,12 @@
 
 #include <vector>
 #include <cassert>
+#include <iostream>
 
+#include "lang_type.h"
+#include "parse_earley.h"
+#include "scanning.h"
+#include "scope_vars_visitor.h"
 #include "type_check.h"
 
 int main(int argc, char* argv[]) {
@@ -12,7 +17,17 @@ int main(int argc, char* argv[]) {
         i += 1;
     }
     
-    type_check(input_file_paths);
+    try {
+        type_check(input_file_paths);
+    } catch (const ScanError& e) {
+        std::cerr << "ERROR: Scanning error on line: " << e.line_no << std::endl;
+    } catch (const ParseError& e) {
+        std::cerr << "ERROR: Parsing error on line: " << e.line_no << std::endl;
+    } catch (const VariableNotFoundError& e) {
+        std::cerr << "ERROR: Unknown variable `" << e.name << "` on line: " << e.line_no << std::endl;
+    } catch (const TypeError& e) {
+        std::cerr << "ERROR: Incompatible types `" << to_string(e.t1) << "` and `" << to_string(e.t2) << "`" << std::endl; 
+    }
 
     return 0;
 }

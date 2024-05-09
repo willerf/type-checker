@@ -67,7 +67,7 @@ PtrLType TypeVisitor::visit(std::shared_ptr<CallNode> node) {
     for (auto arg : node->args) {
         arg_types.push_back(arg->accept(*this));
     }
-    return ltg.add_call(node->proc_name, arg_types);
+    return ltg.add_call(node->func_name, arg_types);
 }
 
 PtrLType TypeVisitor::visit(std::shared_ptr<FnNode> node) {

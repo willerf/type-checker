@@ -177,8 +177,7 @@ std::vector<Token> scan(std::string_view input) {
     for (const auto& token : tokens) {
         if (sep_set1.contains(token.kind)) {
             if (prev_set1) {
-                std::cerr << "Invalid consecutive keywords!" << std::endl;
-                exit(1);
+                throw ScanError(token.line_no);
             }
             prev_set1 = true;
         } else {
@@ -187,8 +186,7 @@ std::vector<Token> scan(std::string_view input) {
 
         if (sep_set2.contains(token.kind)) {
             if (prev_set2) {
-                std::cerr << "Invalid consecutive symbols!" << std::endl;
-                exit(1);
+                throw ScanError(token.line_no);
             }
             prev_set2 = true;
         } else {

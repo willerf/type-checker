@@ -4,6 +4,8 @@
 #include <iostream>
 #include <iterator>
 
+TypeError::TypeError(const LTypeImpl& t1, const LTypeImpl& t2) : t1{t1}, t2{t2} {}
+
 PtrLType make_lt(LPrim lprim) {
     auto ltype = std::make_shared<LTypeImpl>(lprim);
     return std::make_shared<LType>(ltype);
@@ -22,7 +24,7 @@ PtrLType make_lt(LGeneric tcs) {
 }
 
 PtrLType make_lt(LCustom lcustom) {
-    std::cerr << "Implement this" << std::endl;
+    std::cerr << "todo" << std::endl;
     exit(1);
 }
 

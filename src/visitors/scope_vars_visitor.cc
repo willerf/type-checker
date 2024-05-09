@@ -29,8 +29,7 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> no
     }
     else {
         if (!scopes.top().contains(name)) {
-            std::cerr << "Unknown variable " << name << " on line " << node->line_no << std::endl; 
-            exit(1);
+            throw VariableNotFoundError(name, node->line_no);
         }
         auto lhs = scopes.top()[name];
         auto result = make_assign(node->declaration, lhs, rhs);
@@ -71,7 +70,11 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<StmtBlockNode>
 }
 
 std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<VarAccessNode> node) {
-    auto var = scopes.top()[node->var.impl->name];
+    auto scope = scopes.top();
+    if (!scope.contains(node->var.impl->name)) {
+        throw VariableNotFoundError(node->var.impl->name, node->line_no);
+    }
+    auto var = scope[node->var.impl->name];
     auto result = make_var_access(var);
     result->line_no = node->line_no;
     return result;
@@ -98,7 +101,7 @@ ScopedVarsVisitor::visit(std::shared_ptr<CallNode> node) {
     for (auto arg : node->args) {
         args.push_back(arg->accept(*this));
     }
-    auto result = make_call(node->proc_name, args);
+    auto result = make_call(node->func_name, args);
     result->line_no = node->line_no;
     return result;
 }
@@ -142,8 +145,6 @@ ScopedVarsVisitor::visit(std::shared_ptr<RetNode> node) {
     return result;
 }
 
-
-
 std::shared_ptr<ASTNode>
 ScopedVarsVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr = node->expr->accept(*this);
@@ -152,3 +153,4 @@ ScopedVarsVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     return result;
 }
 
+VariableNotFoundError::VariableNotFoundError(const std::string& name, size_t line_no) : name{name}, line_no{line_no} {}

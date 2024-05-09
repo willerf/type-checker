@@ -4,7 +4,6 @@
 #include <stddef.h>
 
 #include <functional>
-#include <iostream>
 #include <optional>
 #include <set>
 #include <string>
@@ -36,9 +35,7 @@ Token scan_one(std::string_view input, DFA& dfa, size_t line_no) {
                     last_accepting.value().first,
                     std::string(last_accepting.value().second)};
             } else {
-                // todo, better exception handling
-                std::cerr << "scanning error on line number: " << line_no << std::endl;
-                exit(1);
+                throw ScanError(line_no);
             }
         }
     }
@@ -47,9 +44,7 @@ Token scan_one(std::string_view input, DFA& dfa, size_t line_no) {
             last_accepting.value().first,
             std::string(last_accepting.value().second)};
     } else {
-        // todo, better exception handling
-        std::cerr << "scanning error on line number: " << line_no << std::endl;
-        exit(1);
+        throw ScanError(line_no);
     }
 }
 
@@ -68,3 +63,5 @@ std::vector<Token> maximal_munch_scan(std::string_view input, DFA& dfa) {
     }
     return tokens;
 }
+
+ScanError::ScanError(size_t line_no) : line_no{line_no} {}

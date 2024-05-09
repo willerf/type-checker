@@ -69,7 +69,7 @@ std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_p
 }
 
 std::function<int(std::map<std::string, int>&)> EvalVisitor::visit(std::shared_ptr<CallNode> node) {
-    auto func = funcs.at(node->proc_name);
+    auto func = funcs.at(node->func_name);
     std::vector<std::function<int(std::map<std::string, int>&)>> args;
     for (auto& arg : node->args) {
         args.push_back(arg->accept(*this));

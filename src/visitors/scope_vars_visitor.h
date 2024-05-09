@@ -35,3 +35,11 @@ class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
     std::shared_ptr<ASTNode> visit(std::shared_ptr<UnaryExprNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<VarAccessNode>) override;
 };
+
+class VariableNotFoundError {
+public:
+    const std::string name;
+    const size_t line_no;
+
+    VariableNotFoundError(const std::string& name, size_t line_no);
+};
