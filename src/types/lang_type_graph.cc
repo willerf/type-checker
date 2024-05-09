@@ -10,6 +10,9 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
     assert(type_id.contains(t1));
     assert(type_id.contains(t2));
 
+    size_t tid1 = type_id.at(t1);
+    size_t tid2 = type_id.at(t2);
+
     PtrLType result_type = nullptr;
 
     auto t1_gen = *t1;
@@ -22,7 +25,11 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
         if (ltimpl1 == ltimpl2) {
-            result_type = t1;
+            if (type_sets.at(tid1).size() > type_sets.at(tid2).size()) {
+                result_type = t1;
+            } else {
+                result_type = t2;
+            }
         } else {
             throw TypeError(**t1, **t2);
         }
@@ -56,23 +63,35 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
 
     assert(result_type);
 
-    size_t result_tid = count++;
-    size_t tid1 = type_id.at(t1);
-    size_t tid2 = type_id.at(t2);
-    std::set<PtrLType> type_set = {result_type};
-    for (auto ptr_ltype : type_sets.at(tid1)) {
-        *ptr_ltype = *result_type;
-        type_id[ptr_ltype] = result_tid;
-        type_set.insert(ptr_ltype);
-    }
-    for (auto ptr_ltype : type_sets.at(tid2)) {
-        *ptr_ltype = *result_type;
-        type_id[ptr_ltype] = result_tid;
-        type_set.insert(ptr_ltype);
-    }
+    if (result_type == t1) {
+        for (auto ptr_ltype : type_sets.at(tid2)) {
+            *ptr_ltype = *result_type;
+            type_id[ptr_ltype] = tid1;
+            type_sets[tid1].insert(ptr_ltype);
+        }
+    } else if (result_type == t2) {
+        for (auto ptr_ltype : type_sets.at(tid1)) {
+            *ptr_ltype = *result_type;
+            type_id[ptr_ltype] = tid2;
+            type_sets[tid2].insert(ptr_ltype);
+        }
+    } else {
+        size_t result_tid = count++;
+        std::set<PtrLType> type_set = {result_type};
+        for (auto ptr_ltype : type_sets.at(tid1)) {
+            *ptr_ltype = *result_type;
+            type_id[ptr_ltype] = result_tid;
+            type_set.insert(ptr_ltype);
+        }
+        for (auto ptr_ltype : type_sets.at(tid2)) {
+            *ptr_ltype = *result_type;
+            type_id[ptr_ltype] = result_tid;
+            type_set.insert(ptr_ltype);
+        }
 
-    type_sets[result_tid] = type_set;
-    type_id[result_type] = result_tid;
+        type_sets[result_tid] = type_set;
+        type_id[result_type] = result_tid;
+    }
     return result_type;
 }
 
