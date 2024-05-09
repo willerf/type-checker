@@ -2,6 +2,7 @@
 #include "lang_type.h"
 
 #include <iostream>
+#include <iterator>
 
 PtrLType make_lt(LPrim lprim) {
     auto ltype = std::make_shared<LTypeImpl>(lprim);
@@ -9,7 +10,13 @@ PtrLType make_lt(LPrim lprim) {
 }
 
 PtrLType make_lt(LTypeClass tc) {
-    std::set<LTypeClass> tmp = {tc};
+    LGeneric tmp = {tc};
+    auto ltype = std::make_shared<LTypeImpl>(tmp);
+    return std::make_shared<LType>(ltype);
+}
+
+PtrLType make_lt(LGeneric tcs) {
+    LGeneric tmp = {};
     auto ltype = std::make_shared<LTypeImpl>(tmp);
     return std::make_shared<LType>(ltype);
 }
@@ -32,8 +39,6 @@ std::string to_string(LPrim lprim) {
             return "Int";
         case LPrim::Bool:
             return "Bool";
-        case LPrim::Generic:
-            return "Generic";
     }
 }
 
@@ -56,6 +61,19 @@ std::string to_string(LTypeClass tc) {
     }
 }
 
+std::string to_string(LGeneric tcs) {
+    std::string result = "[";
+    for (auto tc : tcs) {
+        result += to_string(tc) + ", "; 
+    }
+    if (!tcs.empty()) {
+        result.pop_back();
+        result.pop_back();
+    }
+    result += "]";
+    return result;
+}
+
 std::string to_string(LCustom lcustom) {
     std::string result = lcustom.name;
     result += "(";
@@ -74,18 +92,8 @@ std::string to_string(LTypeImpl ltypeimpl) {
     if (std::holds_alternative<LPrim>(ltypeimpl)) {
         return to_string(std::get<LPrim>(ltypeimpl));
     }
-    if (std::holds_alternative<std::set<LTypeClass>>(ltypeimpl)) {
-        auto& tcs = std::get<std::set<LTypeClass>>(ltypeimpl);
-        std::string result = "[";
-        for (auto tc : tcs) {
-            result += to_string(tc) + ", "; 
-        }
-        if (!tcs.empty()) {
-            result.pop_back();
-            result.pop_back();
-        }
-        result += "]";
-        return result;
+    if (std::holds_alternative<LGeneric>(ltypeimpl)) {
+        return to_string(std::get<LGeneric>(ltypeimpl));
     }
     if (std::holds_alternative<LCustom>(ltypeimpl)) {
         return to_string(std::get<LCustom>(ltypeimpl));
@@ -101,3 +109,23 @@ std::string to_string(PtrLType ptrltype) {
     return to_string(*ptrltype);
 }
 
+bool compatible(LPrim lprim, LGeneric lgeneric) {
+    if (lgeneric.empty()) {
+        return true;
+    }
+
+    LGeneric compat_set;
+    std::vector<LTypeClass> result;
+    switch (lprim) {
+        case LPrim::Invalid:
+            return false;
+        case LPrim::Int:
+            compat_set = {LTypeClass::Eq, LTypeClass::Ord, LTypeClass::Plus, LTypeClass::Minus, LTypeClass::Star, LTypeClass::Slash, LTypeClass::Percent};
+            std::set_intersection(compat_set.begin(), compat_set.end(), lgeneric.begin(), lgeneric.end(), std::back_inserter(result));
+            return !result.empty();
+        case LPrim::Bool:
+            compat_set = {LTypeClass::Eq};
+            std::set_intersection(compat_set.begin(), compat_set.end(), lgeneric.begin(), lgeneric.end(), std::back_inserter(result));
+            return !result.empty();
+    }
+}

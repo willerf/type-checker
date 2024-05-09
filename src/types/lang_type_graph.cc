@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include "lang_type.h"
+#include "lang_type_utils.h"
 
 PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
     std::cout << "DEBUG: {" << to_string(t1) << "} {" << to_string(t2) << "}" << std::endl;
@@ -21,13 +22,7 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
     if (t1_prim && t2_prim) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-        if (ltimpl1 == LPrim::Generic && ltimpl2 == LPrim::Generic || ltimpl1 == ltimpl2) {
-            result_type = t1;
-        }
-        else if (ltimpl1 == LPrim::Generic) {
-            result_type = t2; 
-        }
-        else if (ltimpl2 == LPrim::Generic) {
+        if (ltimpl1 == ltimpl2) {
             result_type = t1;
         }
         else {
@@ -37,39 +32,35 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
     }
     else if (t1_prim) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-        auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
-        if (ltimpl1 == LPrim::Generic) {
-            result_type = t2;
+        if (compatible(ltimpl1, ltimpl2)) {
+            result_type = t1;
         }
         else {
-            // todo: add checks for compability between prim type and type classes
-            result_type = t1;
+            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
+            exit(1);
         }
     }
     else if (t2_prim) {
-        auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-
-        if (ltimpl2 == LPrim::Generic) {
-            result_type = t1;
+        
+        if (compatible(ltimpl2, ltimpl1)) {
+            result_type = t2;
         }
         else {
-            // todo: add checks for compability between prim type and type classes
-            result_type = t2;
+            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
+            exit(1);
         }
     }
     else {
-        auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
-        auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
+        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
-        std::set<LTypeClass> tcs;
-        for (auto tc : ltimpl1) {
-            tcs.insert(tc);
-        }
-        for (auto tc : ltimpl2) {
-            tcs.insert(tc);
-        }
+        LGeneric tcs;
+        tcs.insert(ltimpl1.begin(), ltimpl1.end());
+        tcs.insert(ltimpl2.begin(), ltimpl2.end());
         result_type = make_lt(tcs); 
     }
 
@@ -105,41 +96,21 @@ PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
 
 PtrLType LangTypeGraph::add_tc(PtrLType ptr_ltype, LTypeClass tc) {
     assert(type_id.contains(ptr_ltype));
-    
-    auto lt = *ptr_ltype;
-    if (std::holds_alternative<LPrim>(*lt)) {
-        auto lprim = std::get<LPrim>(*lt);
-        switch (lprim) {
-            case LPrim::Invalid:
-                std::cerr << "Invalid primitive found" << std::endl;
-                exit(1);
-                break;
-            case LPrim::Int:
-                break;
-            case LPrim::Bool:
-                if (tc != LTypeClass::Eq) {
-                    std::cerr << "Bool not compatible with type class " << to_string(tc) << std::endl;
-                    exit(1);
-                }
-                break;
-            case LPrim::Generic:
-                std::set<LTypeClass> tcs = {tc};
-                *lt = tcs;
-                break;
+   
+    std::visit(overloaded{
+        [&](LPrim& lprim) {
+            std::cerr << "Type error: " << to_string(ptr_ltype) << " " << to_string(tc) << std::endl;
+            exit(1);
+        },
+        [&](LGeneric& lgeneric) {
+            lgeneric.insert(tc);
+        },
+        [&](LCustom& lcustom) {
+            std::cerr << "Type error: " << to_string(ptr_ltype) << " " << to_string(tc) << std::endl;
+            exit(1);
         }
-    }
-    else if (std::holds_alternative<std::set<LTypeClass>>(*lt)) {
-        auto& tcs = std::get<std::set<LTypeClass>>(*lt);
-        tcs.insert(tc);
-    }
-    else if (std::holds_alternative<LCustom>(*lt)) {
-        std::cerr << "Unimplemented" << std::endl;
-        exit(1);
-    }
-    else {
-        std::cerr << "Unreachable" << std::endl;
-        exit(1);
-    }
+    }, **ptr_ltype);
+
     return ptr_ltype;
 }
 
@@ -153,10 +124,7 @@ PtrLType LangTypeGraph::add_type(PtrLType ptr_ltype) {
 }
 
 PtrLType LangTypeGraph::add_call(std::string fn_name, std::vector<PtrLType> arg_types) {
-    size_t result_tid = count++;
-    auto ptr_ltype = make_lt(LPrim::Generic);
-    type_id[ptr_ltype] = result_tid;
-    type_sets[result_tid] = {ptr_ltype};
+    auto ptr_ltype = add_type(make_lt(LGeneric{}));
     calls.push_back({ptr_ltype, fn_name, arg_types});
     return ptr_ltype;
 }
@@ -177,49 +145,39 @@ static void subtype(PtrLType t1, PtrLType t2) {
     if (t1_prim && t2_prim) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-        if (ltimpl1 == LPrim::Generic && ltimpl2 == LPrim::Generic || ltimpl1 == ltimpl2) {
-        }
-        else if (ltimpl1 == LPrim::Generic) {
-            ltimpl1 = ltimpl2;
-        }
-        else if (ltimpl2 == LPrim::Generic) {
-        }
-        else {
+
+        if (ltimpl1 != ltimpl2) {
             std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
             exit(1);
         }
     }
     else if (t1_prim) {
         auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-        auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
-        if (ltimpl1 == LPrim::Generic) {
-            *t1_gen = *t2_gen;
-        }
-        else {
-            // todo: add checks for compability between prim type and type classes
+        if (!compatible(ltimpl1, ltimpl2)) {
+            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
+            exit(1);
         }
     }
     else if (t2_prim) {
-        auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
         auto& ltimpl2 = std::get<LPrim>(*t2_gen);
 
-        if (ltimpl2 == LPrim::Generic) {
+        if (compatible(ltimpl2, ltimpl1)) { 
+            *t1_gen = *t2_gen;
         }
         else {
-            // todo: add checks for compability between prim type and type classes
-            *t1_gen = *t2_gen;
+            std::cerr << "Type error: " << to_string(t1) << " " << to_string(t2) << std::endl;
+            exit(1);
         }
     }
     else {
-        auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
-        auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
+        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
-        for (auto tc : ltimpl2) {
-            ltimpl1.insert(tc);
-        }
+        ltimpl1.insert(ltimpl2.begin(), ltimpl2.end());
     }
-
 }
 
 void LangTypeGraph::reduce() {
@@ -331,7 +289,7 @@ void LangTypeGraph::reduce() {
                 }
                 else if (t1_prim) {
                     auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-                    auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+                    auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
                     if (ltimpl1 == LPrim::Generic) {
                         *t1_gen = *t2_gen;
@@ -341,7 +299,7 @@ void LangTypeGraph::reduce() {
                     }
                 }
                 else if (t2_prim) {
-                    auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
+                    auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
                     auto& ltimpl2 = std::get<LPrim>(*t2_gen);
 
                     if (ltimpl2 == LPrim::Generic) {
@@ -352,8 +310,8 @@ void LangTypeGraph::reduce() {
                     }
                 }
                 else {
-                    auto& ltimpl1 = std::get<std::set<LTypeClass>>(*t1_gen);
-                    auto& ltimpl2 = std::get<std::set<LTypeClass>>(*t2_gen);
+                    auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
+                    auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
 
                     for (auto tc : ltimpl2) {
                         ltimpl1.insert(tc);

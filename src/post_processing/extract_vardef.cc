@@ -29,7 +29,7 @@ Variable extract_vardef(
         ParseNode id = root.children.at(0);
         std::string name = id.lexeme;
 
-        return Variable(name, LPrim::Generic);
+        return Variable(name);
     } else {
         std::cerr << "Invalid production found while processing vardef."
                   << std::endl;

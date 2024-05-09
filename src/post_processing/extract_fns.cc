@@ -66,7 +66,7 @@ std::shared_ptr<ASTNode> extract_fn(
         ParseNode stmtblock = root.children.at(5);
         auto stmts = extract_stmtblock(stmtblock);
 
-        result = make_fn(name, params, stmts, LPrim::Generic);
+        result = make_fn(name, params, stmts, LGeneric{});
     } else {
         std::cerr << "Invalid production found while extracting fn."
                   << std::endl;

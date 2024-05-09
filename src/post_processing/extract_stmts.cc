@@ -50,7 +50,7 @@ std::shared_ptr<ASTNode> extract_stmt(
         ParseNode expr_node = root.children.at(2);
         auto expr = extract_expr(expr_node);
 
-        result = make_assign(false, Variable(name, LPrim::Generic), expr);
+        result = make_assign(false, Variable(name), expr);
     } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::IF, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock, Terminal::ELSE, NonTerminal::stmtblock}) {
         // extract if else statements
         ParseNode expr = root.children.at(2);

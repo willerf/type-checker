@@ -21,7 +21,7 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> no
     auto name = node->lhs.impl->name;
     auto rhs = node->rhs->accept(*this);
     if (node->declaration) {
-        Variable lhs(name, LPrim::Generic);
+        Variable lhs(name);
         scopes.top()[name] = lhs;
         auto result = make_assign(node->declaration, lhs, rhs);
         result->line_no = node->line_no;
@@ -45,12 +45,12 @@ std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<FnNode> node) 
     std::map<std::string, Variable> scope;
     std::vector<Variable> params;
     for (auto param : node->params) {
-        Variable v(param.impl->name, LPrim::Generic);
+        Variable v(param.impl->name);
         params.push_back(v);
         scope[v.impl->name] = v;
     }
     scopes.push(scope);
-    auto result = make_fn(node->name, params, node->stmts->accept(*this), LPrim::Generic);
+    auto result = make_fn(node->name, params, node->stmts->accept(*this), LGeneric{});
     result->line_no = node->line_no;
     return result;
 }

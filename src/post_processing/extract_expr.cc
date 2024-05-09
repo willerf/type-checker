@@ -36,7 +36,7 @@ std::shared_ptr<ASTNode> extract_expr(
     if (prod == std::vector<State> {NonTerminal::p8, Terminal::ID}) {
         ParseNode id = root.children.at(0);
         std::string name = id.lexeme;
-        result = make_var_access(Variable(name, LPrim::Generic)); 
+        result = make_var_access(Variable(name)); 
     } else if (prod == std::vector<State> {NonTerminal::p8, Terminal::NUM}) {
         ParseNode num = root.children.at(0);
         result = make_literal(LiteralType::Int, num.lexeme);
