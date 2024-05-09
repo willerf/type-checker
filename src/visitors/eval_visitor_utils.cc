@@ -256,7 +256,7 @@ LDataValue operator!(const LDataValue& expr) {
 std::string to_string(const LDataValue& expr) {
     return std::visit(
         overloaded {
-            [](const std::monostate& expr) { return std::string("monostate"); },
+            [](const std::monostate& expr) { return std::string("unit"); },
             [](const int& expr) { return std::to_string(expr); },
             [](const bool& expr) {
                 return std::string(expr ? "true" : "false");

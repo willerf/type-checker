@@ -37,6 +37,21 @@ void type_check(std::vector<std::string> input_file_paths) {
         ScopedVarsVisitor svv;
         auto program_node2 = program_node->accept(svv);
 
+        std::static_pointer_cast<ProgramNode>(program_node2)
+            ->fns.push_back(make_fn(
+                "print",
+                {Variable {}},
+                make_stmt_block({}),
+                LGeneric({})
+            ));
+        std::static_pointer_cast<ProgramNode>(program_node2)
+            ->fns.push_back(make_fn(
+                "println",
+                {Variable {}},
+                make_stmt_block({}),
+                LGeneric({})
+            ));
+
         TypeVisitor tv;
         program_node2->accept(tv);
 

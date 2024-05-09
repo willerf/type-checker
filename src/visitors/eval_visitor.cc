@@ -158,6 +158,14 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
     for (auto fn_node : node->fns) {
         fn_node->accept(*this);
     }
+    (*func_map["print"]) = [=](auto args) {
+        std::cout << to_string(args.at(0));
+        return LDataValue {std::monostate {}};
+    };
+    (*func_map["println"]) = [=](auto args) {
+        std::cout << to_string(args.at(0)) << std::endl;
+        return LDataValue {std::monostate {}};
+    };
     return [](auto& env) { return 0; };
 }
 
