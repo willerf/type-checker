@@ -128,42 +128,39 @@ void LangTypeGraph::add_fn(std::string fn_name, std::shared_ptr<FnNode> fn) {
     fn_map[fn_name] = fn;
 }
 
-static void subtype(PtrLType t1, PtrLType t2) {
-    auto t1_gen = *t1;
-    auto t2_gen = *t2;
+static void subtype(PtrLType ptr_t1, PtrLType ptr_t2) {
 
-    bool t1_prim = std::holds_alternative<LPrim>(*t1_gen);
-    bool t2_prim = std::holds_alternative<LPrim>(*t2_gen);
-
-    if (t1_prim && t2_prim) {
-        auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-        auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-
-        if (ltimpl1 != ltimpl2) {
-            throw TypeError(**t1, **t2);
-        }
-    } else if (t1_prim) {
-        auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
-
-        if (!compatible(ltimpl1, ltimpl2)) {
-            throw TypeError(**t1, **t2);
-        }
-    } else if (t2_prim) {
-        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
-        auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-
-        if (compatible(ltimpl2, ltimpl1)) {
-            *t1_gen = *t2_gen;
-        } else {
-            throw TypeError(**t1, **t2);
-        }
-    } else {
-        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
-        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
-
-        ltimpl1.insert(ltimpl2.begin(), ltimpl2.end());
-    }
+    std::visit(
+        overloaded {
+            [&](LPrim& t1, LPrim& t2) {
+                if (t1 != t2) {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](LPrim& t1, LGeneric& t2) {
+                if (!compatible(t1, t2)) {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](LPrim& t1, LCustom& t2) {},
+            [&](LGeneric& t1, LPrim& t2) {
+                if (compatible(t2, t1)) {
+                    **ptr_t1 = **ptr_t2;
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](LGeneric& t1, LGeneric& t2) {
+                t1.insert(t2.begin(), t2.end());
+            },
+            [&](LGeneric& t1, LCustom& t2) {},
+            [&](LCustom& t1, LPrim& t2) {},
+            [&](LCustom& t1, LGeneric& t2) {},
+            [&](LCustom& t1, LCustom& t2) {},
+        },
+        **ptr_t1,
+        **ptr_t2
+    );
 }
 
 void LangTypeGraph::reduce() {
