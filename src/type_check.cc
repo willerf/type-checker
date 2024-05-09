@@ -37,7 +37,6 @@ void type_check(std::vector<std::string> input_file_paths) {
         TypeVisitor tv;
         program_node2->accept(tv);
 
-        auto type_id = tv.ltg.get_type_id();
         for (auto node : std::static_pointer_cast<ProgramNode>(program_node2)->fns) {
             std::string output = "";
             auto fn = std::static_pointer_cast<FnNode>(node);

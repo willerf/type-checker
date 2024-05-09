@@ -212,6 +212,3 @@ void LangTypeGraph::reduce() {
     }
 }
 
-std::map<PtrLType, size_t> LangTypeGraph::get_type_id() {
-    return type_id;
-}
