@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <vector>
 #include <set>
+#include <vector>
 
 enum class LPrim { Invalid, Int, Bool };
 enum class LTypeClass { Plus, Minus, Star, Slash, Percent, Eq, Ord };
