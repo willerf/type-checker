@@ -6,70 +6,67 @@
 #include "lang_type.h"
 #include "lang_type_utils.h"
 
-PtrLType LangTypeGraph::union_types(PtrLType t1, PtrLType t2) {
-    assert(type_id.contains(t1));
-    assert(type_id.contains(t2));
+PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
+    assert(type_id.contains(ptr_t1));
+    assert(type_id.contains(ptr_t2));
 
-    size_t tid1 = type_id.at(t1);
-    size_t tid2 = type_id.at(t2);
+    size_t tid1 = type_id.at(ptr_t1);
+    size_t tid2 = type_id.at(ptr_t2);
 
     PtrLType result_type = nullptr;
 
-    auto t1_gen = *t1;
-    auto t2_gen = *t2;
-
-    bool t1_prim = std::holds_alternative<LPrim>(*t1_gen);
-    bool t2_prim = std::holds_alternative<LPrim>(*t2_gen);
-
-    if (t1_prim && t2_prim) {
-        auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-        auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-        if (ltimpl1 == ltimpl2) {
-            if (type_sets.at(tid1).size() > type_sets.at(tid2).size()) {
-                result_type = t1;
-            } else {
-                result_type = t2;
-            }
-        } else {
-            throw TypeError(**t1, **t2);
-        }
-    } else if (t1_prim) {
-        auto& ltimpl1 = std::get<LPrim>(*t1_gen);
-        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
-
-        if (compatible(ltimpl1, ltimpl2)) {
-            result_type = t1;
-        } else {
-            throw TypeError(**t1, **t2);
-        }
-    } else if (t2_prim) {
-        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
-        auto& ltimpl2 = std::get<LPrim>(*t2_gen);
-
-        if (compatible(ltimpl2, ltimpl1)) {
-            result_type = t2;
-        } else {
-            throw TypeError(**t1, **t2);
-        }
-    } else {
-        auto& ltimpl1 = std::get<LGeneric>(*t1_gen);
-        auto& ltimpl2 = std::get<LGeneric>(*t2_gen);
-
-        LGeneric tcs;
-        tcs.insert(ltimpl1.begin(), ltimpl1.end());
-        tcs.insert(ltimpl2.begin(), ltimpl2.end());
-        result_type = make_lt(tcs);
-    }
+    std::visit(
+        overloaded {
+            [&](const LPrim& t1, const LPrim& t2) {
+                if (t1 == t2) {
+                    if (type_sets.at(tid1).size() > type_sets.at(tid2).size()) {
+                        result_type = ptr_t1;
+                    } else {
+                        result_type = ptr_t2;
+                    }
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](const LPrim& t1, const LGeneric& t2) {
+                if (compatible(t1, t2)) {
+                    result_type = ptr_t1;
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](const LPrim& t1, const LCustom& t2) {},
+            [&](const LGeneric& t1, const LPrim& t2) {
+                if (compatible(t2, t1)) {
+                    result_type = ptr_t2;
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](const LGeneric& t1, const LGeneric& t2) {
+                LGeneric tcs;
+                tcs.insert(t1.begin(), t1.end());
+                tcs.insert(t2.begin(), t2.end());
+                result_type = make_lt(tcs);
+            },
+            [&](const LGeneric& t1, const LCustom& t2) {},
+            [&](const LCustom& t1, const LPrim& t2) {},
+            [&](const LCustom& t1, const LGeneric& t2) {},
+            [&](const LCustom& t1, const LCustom& t2) {},
+        },
+        **ptr_t1,
+        **ptr_t2
+    );
 
     assert(result_type);
 
-    if (result_type == t1) {
+    if (result_type == ptr_t1) {
         for (auto ptr_ltype : type_sets.at(tid2)) {
             *ptr_ltype = *result_type;
             type_id[ptr_ltype] = tid1;
             type_sets[tid1].insert(ptr_ltype);
         }
-    } else if (result_type == t2) {
+    } else if (result_type == ptr_t2) {
         for (auto ptr_ltype : type_sets.at(tid1)) {
             *ptr_ltype = *result_type;
             type_id[ptr_ltype] = tid2;
