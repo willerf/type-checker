@@ -7,14 +7,12 @@
 #include <iostream>
 #include <variant>
 
-#include "state.h"
 #include "extract_vardef.h"
+#include "state.h"
 
 struct ProgramContext;
 
-std::vector<Variable> extract_params(
-    ParseNode root
-) {
+std::vector<Variable> extract_params(ParseNode root) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::params);
     std::vector<Variable> result;
 
@@ -41,9 +39,7 @@ std::vector<Variable> extract_params(
     return result;
 }
 
-std::vector<Variable> extract_optparams(
-    ParseNode root
-) {
+std::vector<Variable> extract_optparams(ParseNode root) {
     assert(std::get<NonTerminal>(root.state) == NonTerminal::optparams);
     std::vector<Variable> result;
 

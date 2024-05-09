@@ -1,22 +1,23 @@
 
+#include "type_check.h"
+
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <cassert>
 #include <variant>
 
 #include "extract_s.h"
-#include "lang_type.h"
-#include "scope_vars_visitor.h"
-#include "type_check.h"
-#include "lang_scanning.h"
 #include "lang_parsing.h"
+#include "lang_scanning.h"
+#include "lang_type.h"
+#include "lang_type_utils.h"
+#include "scope_vars_visitor.h"
 #include "type_visitor.h"
 
 void type_check(std::vector<std::string> input_file_paths) {
-
     for (std::string input_file_path : input_file_paths) {
         std::ifstream file {input_file_path};
         if (!file) {
@@ -36,11 +37,11 @@ void type_check(std::vector<std::string> input_file_paths) {
         TypeVisitor tv;
         program_node2->accept(tv);
 
-        auto type_id = tv.ltg.get_type_id();
-        for (auto node : std::static_pointer_cast<ProgramNode>(program_node2)->fns) {
+        for (auto node :
+             std::static_pointer_cast<ProgramNode>(program_node2)->fns) {
             std::string output = "";
             auto fn = std::static_pointer_cast<FnNode>(node);
-            
+
             std::map<LType, char> type_vars;
             char c = 'a';
             for (auto param : fn->params) {
@@ -52,21 +53,22 @@ void type_check(std::vector<std::string> input_file_paths) {
 
             output += fn->name + " [";
             for (auto& [ltype, c] : type_vars) {
-                if (std::holds_alternative<LPrim>(*ltype) && std::get<LPrim>(*ltype) == LPrim::Generic) {
-                    output += "\'";
-                    output += type_vars.at(ltype);
-                    output += ", ";
-                } 
-                else if (std::holds_alternative<std::set<LTypeClass>>(*ltype)) {
-                    auto& tcs = std::get<std::set<LTypeClass>>(*ltype);
-                    output += "\'";
-                    output += type_vars.at(ltype);
-                    for (auto& tc : tcs) {
-                        output += " " + to_string(tc);
-                    }
-                    output += ", ";
-                }
+                std::visit(
+                    overloaded {
+                        [](LPrim& lprim) {},
+                        [&](LGeneric& tcs) {
+                            output += "\'";
+                            output += type_vars.at(ltype);
+                            for (auto& tc : tcs) {
+                                output += " " + to_string(tc);
+                            }
+                            output += ", ";
+                        },
+                        [](LCustom& lcustom) {}},
+                    *ltype
+                );
             }
+
             if (!output.ends_with("[")) {
                 output.pop_back();
                 output.pop_back();
@@ -75,14 +77,21 @@ void type_check(std::vector<std::string> input_file_paths) {
             output += "]: (";
             for (auto param : fn->params) {
                 auto ltype = *param.impl->ptr_ltype;
-                if (std::holds_alternative<LPrim>(*ltype) && std::get<LPrim>(*ltype) != LPrim::Generic) {
-                    output += to_string(ltype) + ", ";
-                }
-                else {
-                    output += "\'";
-                    output += type_vars.at(ltype);
-                    output += ", ";
-                }
+                std::visit(
+                    overloaded {
+                        [&](LPrim& lprim) {
+                            output += to_string(ltype) + ", ";
+                        },
+                        [&](LGeneric& tcs) {
+                            output += "\'";
+                            output += type_vars.at(ltype);
+                            output += ", ";
+                        },
+                        [&](LCustom& lcustom) {
+                            output += to_string(ltype) + ", ";
+                        }},
+                    *ltype
+                );
             }
             if (!fn->params.empty()) {
                 output.pop_back();
@@ -90,19 +99,20 @@ void type_check(std::vector<std::string> input_file_paths) {
             }
             output += ") -> ";
 
-            
             auto ltype = *fn->ret_type;
-            if (std::holds_alternative<LPrim>(*ltype) && std::get<LPrim>(*ltype) != LPrim::Generic) {
-                output += to_string(ltype);
-            }
-            else {
-                output += "\'";
-                output += type_vars.at(ltype);
-            }
 
-            std::cout << output << std::endl; 
+            std::visit(
+                overloaded {
+                    [&](LPrim& lprim) { output += to_string(ltype); },
+                    [&](LGeneric& tcs) {
+                        output += "\'";
+                        output += type_vars.at(ltype);
+                    },
+                    [&](LCustom& lcustom) { output += to_string(ltype); }},
+                *ltype
+            );
+
+            std::cout << output << std::endl;
         }
-
     }
 }
-

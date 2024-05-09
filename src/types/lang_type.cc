@@ -2,6 +2,11 @@
 #include "lang_type.h"
 
 #include <iostream>
+#include <iterator>
+
+TypeError::TypeError(const LTypeImpl& t1, const LTypeImpl& t2) :
+    t1 {t1},
+    t2 {t2} {}
 
 PtrLType make_lt(LPrim lprim) {
     auto ltype = std::make_shared<LTypeImpl>(lprim);
@@ -9,13 +14,19 @@ PtrLType make_lt(LPrim lprim) {
 }
 
 PtrLType make_lt(LTypeClass tc) {
-    std::set<LTypeClass> tmp = {tc};
+    LGeneric tmp = {tc};
+    auto ltype = std::make_shared<LTypeImpl>(tmp);
+    return std::make_shared<LType>(ltype);
+}
+
+PtrLType make_lt(LGeneric tcs) {
+    LGeneric tmp = {};
     auto ltype = std::make_shared<LTypeImpl>(tmp);
     return std::make_shared<LType>(ltype);
 }
 
 PtrLType make_lt(LCustom lcustom) {
-    std::cerr << "Implement this" << std::endl;
+    std::cerr << "todo" << std::endl;
     exit(1);
 }
 
@@ -27,13 +38,15 @@ PtrLType make_lt(LTypeImpl ltypeimpl) {
 std::string to_string(LPrim lprim) {
     switch (lprim) {
         case LPrim::Invalid:
-            return "Invalid";
+            return "invalid";
         case LPrim::Int:
-            return "Int";
+            return "int";
         case LPrim::Bool:
-            return "Bool";
-        case LPrim::Generic:
-            return "Generic";
+            return "bool";
+        case LPrim::Char:
+            return "char";
+        case LPrim::Str:
+            return "str";
     }
 }
 
@@ -56,6 +69,19 @@ std::string to_string(LTypeClass tc) {
     }
 }
 
+std::string to_string(LGeneric tcs) {
+    std::string result = "[";
+    for (auto tc : tcs) {
+        result += to_string(tc) + ", ";
+    }
+    if (!tcs.empty()) {
+        result.pop_back();
+        result.pop_back();
+    }
+    result += "]";
+    return result;
+}
+
 std::string to_string(LCustom lcustom) {
     std::string result = lcustom.name;
     result += "(";
@@ -74,18 +100,8 @@ std::string to_string(LTypeImpl ltypeimpl) {
     if (std::holds_alternative<LPrim>(ltypeimpl)) {
         return to_string(std::get<LPrim>(ltypeimpl));
     }
-    if (std::holds_alternative<std::set<LTypeClass>>(ltypeimpl)) {
-        auto& tcs = std::get<std::set<LTypeClass>>(ltypeimpl);
-        std::string result = "[";
-        for (auto tc : tcs) {
-            result += to_string(tc) + ", "; 
-        }
-        if (!tcs.empty()) {
-            result.pop_back();
-            result.pop_back();
-        }
-        result += "]";
-        return result;
+    if (std::holds_alternative<LGeneric>(ltypeimpl)) {
+        return to_string(std::get<LGeneric>(ltypeimpl));
     }
     if (std::holds_alternative<LCustom>(ltypeimpl)) {
         return to_string(std::get<LCustom>(ltypeimpl));
@@ -100,4 +116,3 @@ std::string to_string(LType ltype) {
 std::string to_string(PtrLType ptrltype) {
     return to_string(*ptrltype);
 }
-

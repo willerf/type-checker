@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#include <iostream>
 #include <map>
 #include <span>
 #include <string>
@@ -138,7 +137,8 @@ struct EarleyItem {
     bool operator==(const EarleyItem&) const = default;
 };
 
-std::optional<ParseNode> parse_earley(std::span<Token> input, Grammar& grammar) {
+std::optional<ParseNode>
+parse_earley(std::span<Token> input, Grammar& grammar) {
     std::vector<std::vector<EarleyItem>> earley_sets;
     earley_sets.push_back({});
 
@@ -259,14 +259,12 @@ std::optional<ParseNode> parse_earley(std::span<Token> input, Grammar& grammar) 
         }
     }
     if (x > 0 && x <= input.size()) {
-        // todo: replace with proper exception handling
-        std::cerr << "Parsing error on line number: " << input[x - 1].line_no << std::endl;
-        exit(1);
+        throw ParseError(input[x - 1].line_no);
     }
     if (x == 0 && input.size() > 0) {
-        // todo: replace with proper exception handling
-        std::cerr << "Parsing error on line number: " << input[x].line_no << std::endl;
-        exit(1);
+        throw ParseError(input[x].line_no);
     }
     return std::nullopt;
 }
+
+ParseError::ParseError(size_t line_no) : line_no {line_no} {}

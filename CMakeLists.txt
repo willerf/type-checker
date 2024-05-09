@@ -35,6 +35,7 @@ add_library(type_checker_lib STATIC
     src/program_representation/variable.cc
     src/types/lang_type.cc
     src/types/lang_type_graph.cc
+    src/types/lang_type_utils.cc
     src/visitors/scope_vars_visitor.cc
     src/visitors/type_visitor.cc
     src/type_check.cc
