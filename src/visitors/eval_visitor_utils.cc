@@ -266,6 +266,10 @@ std::string to_string(const LDataValue& expr) {
                 ;
             },
             [](const std::string& expr) { return expr; },
+            [](const LRetValue& expr) {
+                UNREACHABLE;
+                return std::string();
+            },
         },
         expr
     );

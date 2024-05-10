@@ -15,11 +15,13 @@
 #include "eval_visitor_utils.h"
 #include "fn_node.h"
 #include "if_node.h"
+#include "lang_type_utils.h"
 #include "literal_node.h"
 #include "program_node.h"
 #include "ret_node.h"
 #include "stmt_block_node.h"
 #include "unary_expr_node.h"
+#include "unreachable_error.h"
 #include "var_access_node.h"
 #include "visitor.h"
 #include "while_node.h"
@@ -94,11 +96,25 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<FnNode> node) {
     }
     auto func = [=](auto args) {
         assert(args.size() == params.size());
-        LEnvironment m;
+        LEnvironment env;
         for (int i = 0; i < params.size(); i++) {
-            m[params.at(i)] = args.at(i);
+            env[params.at(i)] = args.at(i);
         }
-        return stmtblock(m);
+        auto result = stmtblock(env);
+        if (std::holds_alternative<LRetValue>(result)) {
+            return std::visit(
+                overloaded {
+                    [&](const std::monostate& val) { return LDataValue {val}; },
+                    [&](const int& val) { return LDataValue {val}; },
+                    [&](const bool& val) { return LDataValue {val}; },
+                    [&](const char& val) { return LDataValue {val}; },
+                    [&](const std::string& val) { return LDataValue {val}; },
+                },
+                std::get<LRetValue>(result)
+            );
+        } else {
+            return LDataValue {std::monostate {}};
+        }
     };
     (*func_map[node->name]) = func;
     return [](auto& env) { return 0; };
@@ -170,7 +186,28 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
 }
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<RetNode> node) {
-    return node->expr->accept(*this);
+    auto expr = node->expr->accept(*this);
+    return [=](auto& env) {
+        auto val = expr(env);
+        return std::visit(
+            overloaded {
+                [&](const std::monostate& val) {
+                    return LDataValue {LRetValue {val}};
+                },
+                [&](const int& val) { return LDataValue {LRetValue {val}}; },
+                [&](const bool& val) { return LDataValue {LRetValue {val}}; },
+                [&](const char& val) { return LDataValue {LRetValue {val}}; },
+                [&](const std::string& val) {
+                    return LDataValue {LRetValue {val}};
+                },
+                [&](const LRetValue& val) {
+                    UNREACHABLE;
+                    return LDataValue {std::monostate {}};
+                },
+            },
+            val
+        );
+    };
 }
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
@@ -182,7 +219,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
         auto env_copy = env;
         for (auto stmt : stmts) {
             auto val = stmt(env);
-            if (!std::holds_alternative<std::monostate>(val)) {
+            if (std::holds_alternative<LRetValue>(val)) {
                 LEnvironment result;
                 std::set_intersection(
                     env.begin(),
