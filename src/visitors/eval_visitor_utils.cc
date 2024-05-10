@@ -10,7 +10,7 @@ LDataValue operator||(const LDataValue& lhs, const LDataValue& rhs) {
             [](const bool& lhs, const bool& rhs) {
                 return LDataValue {lhs || rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -25,7 +25,7 @@ LDataValue operator&&(const LDataValue& lhs, const LDataValue& rhs) {
             [](const bool& lhs, const bool& rhs) {
                 return LDataValue {lhs && rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -49,7 +49,7 @@ LDataValue operator==(const LDataValue& lhs, const LDataValue& rhs) {
             [](const std::string& lhs, const std::string& rhs) {
                 return LDataValue {lhs == rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -73,7 +73,7 @@ LDataValue operator!=(const LDataValue& lhs, const LDataValue& rhs) {
             [](const std::string& lhs, const std::string& rhs) {
                 return LDataValue {lhs != rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -94,7 +94,7 @@ LDataValue operator<(const LDataValue& lhs, const LDataValue& rhs) {
             [](const std::string& lhs, const std::string& rhs) {
                 return LDataValue {lhs < rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -115,7 +115,7 @@ LDataValue operator>(const LDataValue& lhs, const LDataValue& rhs) {
             [](const std::string& lhs, const std::string& rhs) {
                 return LDataValue {lhs > rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -136,7 +136,7 @@ LDataValue operator<=(const LDataValue& lhs, const LDataValue& rhs) {
             [](const std::string& lhs, const std::string& rhs) {
                 return LDataValue {lhs <= rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -157,7 +157,7 @@ LDataValue operator>=(const LDataValue& lhs, const LDataValue& rhs) {
             [](const std::string& lhs, const std::string& rhs) {
                 return LDataValue {lhs >= rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -172,7 +172,7 @@ LDataValue operator+(const LDataValue& lhs, const LDataValue& rhs) {
             [](const int& lhs, const int& rhs) {
                 return LDataValue {lhs + rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -187,7 +187,7 @@ LDataValue operator-(const LDataValue& lhs, const LDataValue& rhs) {
             [](const int& lhs, const int& rhs) {
                 return LDataValue {lhs - rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -202,7 +202,7 @@ LDataValue operator*(const LDataValue& lhs, const LDataValue& rhs) {
             [](const int& lhs, const int& rhs) {
                 return LDataValue {lhs * rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -217,7 +217,7 @@ LDataValue operator/(const LDataValue& lhs, const LDataValue& rhs) {
             [](const int& lhs, const int& rhs) {
                 return LDataValue {lhs / rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -232,7 +232,7 @@ LDataValue operator%(const LDataValue& lhs, const LDataValue& rhs) {
             [](const int& lhs, const int& rhs) {
                 return LDataValue {lhs % rhs};
             },
-            [](auto&&, auto&&) {
+            [](const auto&, const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},
@@ -245,7 +245,7 @@ LDataValue operator!(const LDataValue& expr) {
     return std::visit(
         overloaded {
             [](const int& expr) { return LDataValue {!expr}; },
-            [](auto&&) {
+            [](const auto&) {
                 UNREACHABLE;
                 return LDataValue {std::monostate {}};
             }},

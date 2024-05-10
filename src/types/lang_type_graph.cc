@@ -50,7 +50,7 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                 tcs.insert(t2.begin(), t2.end());
                 result_type = make_lt(tcs);
             },
-            [](auto&&, auto&&) { UNREACHABLE; },
+            [](const auto&, const auto&) { UNREACHABLE; },
         },
         **ptr_t1,
         **ptr_t2
@@ -153,9 +153,13 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
                 }
             },
             [&](LGeneric& t1, LGeneric& t2) {
+                size_t t1_size = t1.size();
                 t1.insert(t2.begin(), t2.end());
+                if (t1_size != t1.size()) {
+                    modified = true;
+                }
             },
-            [](auto&&, auto&&) { UNREACHABLE; },
+            [](auto&, auto&) { UNREACHABLE; },
         },
         **ptr_t1,
         **ptr_t2

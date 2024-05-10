@@ -57,7 +57,8 @@ PtrLType TypeVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
         }
     } else {
         auto bool_type = make_lt(LPrim::Bool);
-        return ltg.add_type(bool_type);
+        ltg.add_type(bool_type);
+        return ltg.union_types(lhs_type, bool_type);
     }
 }
 
