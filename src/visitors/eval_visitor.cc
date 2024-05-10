@@ -26,11 +26,6 @@
 #include "visitor.h"
 #include "while_node.h"
 
-EvalFunc EvalVisitor::visit(std::shared_ptr<ASTNode> node) {
-    std::cerr << "EvalVisitor error" << std::endl;
-    return [](auto& env) { return 0; };
-}
-
 EvalFunc EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto expr = node->rhs->accept(*this);
     auto var = node->lhs.impl;

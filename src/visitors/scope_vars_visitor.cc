@@ -74,11 +74,6 @@ ScopedVarsVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
     return result;
 }
 
-std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<ASTNode> node
-) {
-    return node;
-}
-
 std::shared_ptr<ASTNode>
 ScopedVarsVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     auto lhs = node->lhs->accept(*this);

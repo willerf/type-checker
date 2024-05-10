@@ -9,12 +9,8 @@
 #include "fn_node.h"
 #include "lang_type.h"
 #include "unary_expr_node.h"
+#include "unreachable_error.h"
 #include "visitor.h"
-
-PtrLType TypeVisitor::visit(std::shared_ptr<ASTNode> node) {
-    std::cerr << "TypeVisitor error" << std::endl;
-    exit(1);
-}
 
 PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto lhs_type = node->lhs.impl->ptr_ltype;

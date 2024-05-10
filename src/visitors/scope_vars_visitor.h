@@ -23,7 +23,6 @@ class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
     std::stack<std::map<std::string, Variable>> scopes;
 
   public:
-    std::shared_ptr<ASTNode> visit(std::shared_ptr<ASTNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<AssignNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<BinaryExprNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<CallNode>) override;

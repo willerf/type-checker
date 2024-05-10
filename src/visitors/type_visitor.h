@@ -28,7 +28,6 @@ class TypeVisitor: public Visitor<PtrLType> {
 
   public:
     LangTypeGraph ltg;
-    PtrLType visit(std::shared_ptr<ASTNode>) override;
     PtrLType visit(std::shared_ptr<AssignNode>) override;
     PtrLType visit(std::shared_ptr<BinaryExprNode>) override;
     PtrLType visit(std::shared_ptr<CallNode>) override;
