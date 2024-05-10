@@ -146,7 +146,12 @@ void type_check(std::vector<std::string> input_file_paths) {
             std::cerr << "ERROR: Missing main function" << std::endl;
             exit(1);
         }
+
+        std::cout << std::endl
+                  << "-------- Program Output --------" << std::endl;
         auto result = (*prog_main)({});
+        std::cout << "--------------------------------" << std::endl;
+
         std::cout << "Exited with: " << to_string(result) << std::endl;
     }
 }
