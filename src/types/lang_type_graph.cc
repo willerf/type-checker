@@ -133,7 +133,8 @@ void LangTypeGraph::add_fn(std::string fn_name, std::shared_ptr<FnNode> fn) {
     fn_map[fn_name] = fn;
 }
 
-static void subtype(PtrLType ptr_t1, PtrLType ptr_t2) {
+bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
+    bool modified = false;
     std::visit(
         overloaded {
             [&](LPrim& t1, LPrim& t2) {
@@ -150,6 +151,7 @@ static void subtype(PtrLType ptr_t1, PtrLType ptr_t2) {
             [&](LGeneric& t1, LPrim& t2) {
                 if (compatible(t2, t1)) {
                     **ptr_t1 = **ptr_t2;
+                    modified = true;
                 } else {
                     throw TypeError(**ptr_t1, **ptr_t2);
                 }
@@ -165,32 +167,46 @@ static void subtype(PtrLType ptr_t1, PtrLType ptr_t2) {
         **ptr_t1,
         **ptr_t2
     );
+    return modified;
+}
+
+bool LangTypeGraph::union_types_mod(PtrLType ptr_t1, PtrLType ptr_t2) {
+    if (type_id.at(ptr_t1) == type_id.at(ptr_t2)) {
+        return false;
+    }
+    union_types(ptr_t1, ptr_t2);
+    return true;
 }
 
 void LangTypeGraph::reduce() {
     int n = calls.size();
-    for (int i = 0; i < n; i++) {
-        auto& [ret_type, fn_name, arg_types] = calls[i];
-        auto fn = fn_map.at(fn_name);
-        assert(fn->params.size() == arg_types.size());
+    bool modified;
 
-        for (int i = 0; i < fn->params.size(); i++) {
-            if (type_id[fn->params[i].impl->ptr_ltype]
-                == type_id[fn->ret_type]) {
-                union_types(ret_type, arg_types[i]);
+    do {
+        modified = false;
+        for (int i = 0; i < n; i++) {
+            auto& [ret_type, fn_name, arg_types] = calls[i];
+            auto fn = fn_map.at(fn_name);
+            assert(fn->params.size() == arg_types.size());
+
+            for (int i = 0; i < fn->params.size(); i++) {
+                if (type_id[fn->params[i].impl->ptr_ltype]
+                    == type_id[fn->ret_type]) {
+                    modified |= union_types_mod(ret_type, arg_types[i]);
+                }
             }
-        }
 
-        for (int i = 0; i < fn->params.size(); i++) {
-            auto p1 = fn->params[i].impl->ptr_ltype;
-            for (int j = i + 1; j < fn->params.size(); j++) {
-                auto p2 = fn->params[j].impl->ptr_ltype;
-                if (type_id.at(p1) == type_id.at(p2)) {
-                    union_types(arg_types[i], arg_types[j]);
+            for (int i = 0; i < fn->params.size(); i++) {
+                auto p1 = fn->params[i].impl->ptr_ltype;
+                for (int j = i + 1; j < fn->params.size(); j++) {
+                    auto p2 = fn->params[j].impl->ptr_ltype;
+                    if (type_id.at(p1) == type_id.at(p2)) {
+                        modified |= union_types_mod(arg_types[i], arg_types[j]);
+                    }
                 }
             }
         }
-    }
+    } while (modified);
 
     for (auto& [_, fn] : fn_map) {
         if (type_sets.at(type_id.at(fn->ret_type)).size() == 1) {
@@ -198,17 +214,18 @@ void LangTypeGraph::reduce() {
         }
     }
 
-    for (int i = 0; i < n; i++) {
+    do {
+        modified = false;
         for (int j = 0; j < n; j++) {
             auto& [ret_type, fn_name, arg_types] = calls[j];
             auto fn = fn_map.at(fn_name);
 
-            subtype(ret_type, fn->ret_type);
+            modified |= sub_type(ret_type, fn->ret_type);
 
-            for (int i = 0; i < fn->params.size(); i++) {
-                auto param_type = fn->params[i].impl->ptr_ltype;
-                subtype(arg_types[i], param_type);
+            for (int k = 0; k < fn->params.size(); k++) {
+                auto param_type = fn->params[k].impl->ptr_ltype;
+                modified |= sub_type(arg_types[k], param_type);
             }
         }
-    }
+    } while (modified);
 }

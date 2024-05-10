@@ -13,6 +13,9 @@ class LangTypeGraph {
     std::vector<std::tuple<PtrLType, std::string, std::vector<PtrLType>>> calls;
     std::map<std::string, std::shared_ptr<FnNode>> fn_map;
 
+    bool sub_type(PtrLType ptr_t1, PtrLType ptr_t2);
+    bool union_types_mod(PtrLType ptr_t1, PtrLType ptr_t2);
+
   public:
     PtrLType union_types(PtrLType t1, PtrLType t2);
     PtrLType add_tc(PtrLType ptr_ltype, LTypeClass tc);
