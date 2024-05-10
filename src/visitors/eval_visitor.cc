@@ -112,7 +112,10 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<FnNode> node) {
         }
     };
     (*func_map[node->name]) = func;
-    return [](auto& env) { return 0; };
+    return [](auto& env) {
+        UNREACHABLE;
+        return LDataValue {std::monostate {}};
+    };
 }
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<IfNode> node) {
@@ -177,7 +180,10 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
         std::cout << to_string(args.at(0)) << std::endl;
         return LDataValue {std::monostate {}};
     };
-    return [](auto& env) { return 0; };
+    return [](auto& env) {
+        UNREACHABLE;
+        return LDataValue {std::monostate {}};
+    };
 }
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<RetNode> node) {
