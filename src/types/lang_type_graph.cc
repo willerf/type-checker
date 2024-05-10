@@ -6,6 +6,7 @@
 
 #include "lang_type.h"
 #include "lang_type_utils.h"
+#include "unreachable_error.h"
 
 PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
     assert(type_id.contains(ptr_t1));
@@ -36,7 +37,6 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                     throw TypeError(**ptr_t1, **ptr_t2);
                 }
             },
-            [&](const LPrim& t1, const LCustom& t2) {},
             [&](const LGeneric& t1, const LPrim& t2) {
                 if (compatible(t2, t1)) {
                     result_type = ptr_t2;
@@ -50,10 +50,7 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                 tcs.insert(t2.begin(), t2.end());
                 result_type = make_lt(tcs);
             },
-            [&](const LGeneric& t1, const LCustom& t2) {},
-            [&](const LCustom& t1, const LPrim& t2) {},
-            [&](const LCustom& t1, const LGeneric& t2) {},
-            [&](const LCustom& t1, const LCustom& t2) {},
+            [](auto&&, auto&&) { UNREACHABLE; },
         },
         **ptr_t1,
         **ptr_t2
@@ -147,7 +144,6 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
                     throw TypeError(**ptr_t1, **ptr_t2);
                 }
             },
-            [&](LPrim& t1, LCustom& t2) {},
             [&](LGeneric& t1, LPrim& t2) {
                 if (compatible(t2, t1)) {
                     **ptr_t1 = **ptr_t2;
@@ -159,10 +155,7 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
             [&](LGeneric& t1, LGeneric& t2) {
                 t1.insert(t2.begin(), t2.end());
             },
-            [&](LGeneric& t1, LCustom& t2) {},
-            [&](LCustom& t1, LPrim& t2) {},
-            [&](LCustom& t1, LGeneric& t2) {},
-            [&](LCustom& t1, LCustom& t2) {},
+            [](auto&&, auto&&) { UNREACHABLE; },
         },
         **ptr_t1,
         **ptr_t2
