@@ -38,11 +38,11 @@ add_library(type_checker_lib STATIC
     src/types/lang_type.cc
     src/types/lang_type_graph.cc
     src/types/lang_type_utils.cc
+    src/utils/type_printer.cc
     src/visitors/eval_visitor.cc
     src/visitors/eval_visitor_utils.cc
     src/visitors/scope_vars_visitor.cc
     src/visitors/type_visitor.cc
-    src/type_check.cc
 )
 
 target_include_directories(type_checker_lib PUBLIC
@@ -52,10 +52,14 @@ target_include_directories(type_checker_lib PUBLIC
     src/post_processing
     src/program_representation
     src/types
+    src/utils
     src/visitors
     src
 )
 
-add_executable(typecheck src/main.cc)
-target_link_libraries(typecheck type_checker_lib)
+add_executable(type-check src/type_check_main.cc src/type_check.cc)
+target_link_libraries(type-check type_checker_lib)
+
+add_executable(execute src/execute_main.cc src/execute.cc)
+target_link_libraries(execute type_checker_lib)
 

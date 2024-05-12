@@ -1,5 +1,5 @@
 
-#include "type_check.h"
+#include "execute.h"
 
 #include <cassert>
 #include <fstream>
@@ -21,7 +21,7 @@
 #include "type_printer.h"
 #include "type_visitor.h"
 
-void type_check(std::vector<std::string> input_file_paths) {
+void execute(std::vector<std::string> input_file_paths) {
     for (std::string input_file_path : input_file_paths) {
         std::ifstream file {input_file_path};
         if (!file) {
@@ -56,6 +56,24 @@ void type_check(std::vector<std::string> input_file_paths) {
         TypeVisitor tv;
         program_node2->accept(tv);
 
-        print_types(std::static_pointer_cast<ProgramNode>(program_node2));
+        std::static_pointer_cast<ProgramNode>(program_node2);
+
+        EvalVisitor ev;
+        program_node2->accept(ev);
+
+        std::shared_ptr<CallableFunc> prog_main = nullptr;
+        for (auto& [name, func] : ev.func_map) {
+            if (name == "main") {
+                prog_main = func;
+            }
+        }
+        if (!prog_main) {
+            std::cerr << "ERROR: Missing main function" << std::endl;
+            exit(1);
+        }
+
+        auto result = (*prog_main)({});
+
+        std::cout << "Exited with: " << to_string(result) << std::endl;
     }
 }
