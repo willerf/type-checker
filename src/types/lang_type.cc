@@ -26,9 +26,9 @@ PtrLType make_lt(LGeneric tcs) {
     return std::make_shared<LType>(ltype);
 }
 
-PtrLType make_lt(LCustom lcustom) {
-    std::cerr << "todo" << std::endl;
-    exit(1);
+PtrLType make_lt(LArray larray) {
+    auto ltype = std::make_shared<LTypeImpl>(larray);
+    return std::make_shared<LType>(ltype);
 }
 
 PtrLType make_lt(LTypeImpl ltypeimpl) {
@@ -73,7 +73,7 @@ std::string to_string(LTypeClass tc) {
 }
 
 std::string to_string(LGeneric tcs) {
-    std::string result = "[";
+    std::string result = "{";
     for (auto tc : tcs) {
         result += to_string(tc) + ", ";
     }
@@ -81,22 +81,12 @@ std::string to_string(LGeneric tcs) {
         result.pop_back();
         result.pop_back();
     }
-    result += "]";
+    result += "}";
     return result;
 }
 
-std::string to_string(LCustom lcustom) {
-    std::string result = lcustom.name;
-    result += "(";
-    for (auto child : lcustom.children) {
-        result += to_string(child) + ", ";
-    }
-    if (!lcustom.children.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-    result += ")";
-    return result;
+std::string to_string(LArray larray) {
+    return "[" + to_string(larray.ltype) + "]";
 }
 
 std::string to_string(LTypeImpl ltypeimpl) {
@@ -106,8 +96,8 @@ std::string to_string(LTypeImpl ltypeimpl) {
     if (std::holds_alternative<LGeneric>(ltypeimpl)) {
         return to_string(std::get<LGeneric>(ltypeimpl));
     }
-    if (std::holds_alternative<LCustom>(ltypeimpl)) {
-        return to_string(std::get<LCustom>(ltypeimpl));
+    if (std::holds_alternative<LArray>(ltypeimpl)) {
+        return to_string(std::get<LArray>(ltypeimpl));
     }
     UNREACHABLE;
 }

@@ -6,6 +6,7 @@
 #include <queue>
 #include <set>
 
+#include "array_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -28,6 +29,7 @@ class TypeVisitor: public Visitor<PtrLType> {
 
   public:
     LangTypeGraph ltg;
+    PtrLType visit(std::shared_ptr<ArrayNode>) override;
     PtrLType visit(std::shared_ptr<AssignNode>) override;
     PtrLType visit(std::shared_ptr<BinaryExprNode>) override;
     PtrLType visit(std::shared_ptr<CallNode>) override;

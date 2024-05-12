@@ -4,6 +4,7 @@
 #include <memory>
 
 struct ASTNode;
+struct ArrayNode;
 struct AssignNode;
 struct BinaryExprNode;
 struct CallNode;
@@ -20,6 +21,7 @@ struct VarAccessNode;
 template<typename T>
 class Visitor {
   public:
+    virtual T visit(std::shared_ptr<ArrayNode>) = 0;
     virtual T visit(std::shared_ptr<AssignNode>) = 0;
     virtual T visit(std::shared_ptr<BinaryExprNode>) = 0;
     virtual T visit(std::shared_ptr<CallNode>) = 0;

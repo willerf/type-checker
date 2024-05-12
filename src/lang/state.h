@@ -12,6 +12,8 @@ enum class Terminal {
     RPAREN,
     LBRACE,
     RBRACE,
+    LBRACKET,
+    RBRACKET,
     COMMA,
     LET,
     ASSIGN,

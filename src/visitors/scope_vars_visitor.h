@@ -4,6 +4,7 @@
 #include <map>
 #include <stack>
 
+#include "array_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -23,6 +24,7 @@ class ScopedVarsVisitor: public Visitor<std::shared_ptr<ASTNode>> {
     std::stack<std::map<std::string, Variable>> scopes;
 
   public:
+    std::shared_ptr<ASTNode> visit(std::shared_ptr<ArrayNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<AssignNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<BinaryExprNode>) override;
     std::shared_ptr<ASTNode> visit(std::shared_ptr<CallNode>) override;

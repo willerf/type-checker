@@ -12,6 +12,26 @@
 #include "unreachable_error.h"
 #include "visitor.h"
 
+PtrLType TypeVisitor::visit(std::shared_ptr<ArrayNode> node) {
+    auto array_elem_type = make_lt(LGeneric {});
+    ltg.add_type(array_elem_type);
+    for (auto elem : node->init_list) {
+        auto elem_type = elem->accept(*this);
+        ltg.union_types(array_elem_type, elem_type);
+    }
+
+    if (node->init_size) {
+        auto size_type = node->init_size->accept(*this);
+
+        auto int_type = make_lt(LPrim::Int);
+        ltg.add_type(int_type);
+        ltg.union_types(size_type, int_type);
+    }
+
+    auto array_type = make_lt(LArray {array_elem_type});
+    return ltg.add_type(array_type);
+}
+
 PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto lhs_type = node->lhs.impl->ptr_ltype;
     if (node->declaration) {

@@ -6,11 +6,13 @@
 #include <set>
 #include <stdexcept>
 
+#include "array_node.h"
 #include "binary_expr_node.h"
 #include "call_node.h"
 #include "extract_args.h"
 #include "lang_type.h"
 #include "literal_node.h"
+#include "state.h"
 #include "unary_expr_node.h"
 #include "var_access_node.h"
 #include "variable.h"
@@ -57,6 +59,25 @@ std::shared_ptr<ASTNode> extract_expr(ParseNode root) {
                 + std::to_string(expr.line_no)
             );
         }
+    } else if (prod == std::vector<State> {NonTerminal::p8, Terminal::STRLITERAL}) {
+        ParseNode expr = root.children.at(0);
+        result = make_literal(
+            LiteralType::Str,
+            expr.lexeme.substr(1, expr.lexeme.length() - 2)
+        );
+    } else if (prod == std::vector<State> {NonTerminal::p8, Terminal::LBRACKET, NonTerminal::optargs, Terminal::RBRACKET}) {
+        ParseNode optargs = root.children.at(1);
+        auto args = extract_optargs(optargs);
+
+        result = make_array(args, nullptr);
+    } else if (prod == std::vector<State> {NonTerminal::p8, Terminal::LBRACKET, NonTerminal::optargs, Terminal::RBRACKET, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN}) {
+        ParseNode optargs = root.children.at(1);
+        auto args = extract_optargs(optargs);
+
+        ParseNode expr_node = root.children.at(4);
+        auto expr = extract_expr(expr_node);
+
+        result = make_array(args, expr);
     } else if (prod == std::vector<State> {NonTerminal::p8, Terminal::STRLITERAL}) {
         ParseNode expr = root.children.at(0);
         result = make_literal(

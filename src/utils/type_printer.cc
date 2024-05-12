@@ -33,7 +33,7 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
                         }
                         output += ", ";
                     },
-                    [](LCustom& lcustom) {}},
+                    [](LArray& larray) {}},
                 *ltype
             );
         }
@@ -54,9 +54,7 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
                         output += type_vars.at(ltype);
                         output += ", ";
                     },
-                    [&](LCustom& lcustom) {
-                        output += to_string(ltype) + ", ";
-                    }},
+                    [&](LArray& larray) { output += to_string(ltype) + ", "; }},
                 *ltype
             );
         }
@@ -75,7 +73,7 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
                     output += "\'";
                     output += type_vars.at(ltype);
                 },
-                [&](LCustom& lcustom) { output += to_string(ltype); }},
+                [&](LArray& larray) { output += to_string(ltype); }},
             *ltype
         );
 

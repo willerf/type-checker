@@ -26,6 +26,8 @@
 #include "visitor.h"
 #include "while_node.h"
 
+EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {}
+
 EvalFunc EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto expr = node->rhs->accept(*this);
     auto var = node->lhs.impl;

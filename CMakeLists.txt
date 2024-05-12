@@ -22,6 +22,7 @@ add_library(type_checker_lib STATIC
     src/post_processing/extract_s.cc
     src/post_processing/extract_stmts.cc
     src/post_processing/extract_vardef.cc
+    src/program_representation/array_node.cc
     src/program_representation/assign_node.cc
     src/program_representation/binary_expr_node.cc
     src/program_representation/call_node.cc

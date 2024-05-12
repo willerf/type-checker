@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "array_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -18,6 +19,19 @@
 #include "var_access_node.h"
 #include "visitor.h"
 #include "while_node.h"
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<ArrayNode> node) {
+    std::vector<std::shared_ptr<ASTNode>> init_list;
+    for (auto init_val : node->init_list) {
+        init_list.push_back(init_val->accept(*this));
+    }
+    std::shared_ptr<ASTNode> init_size;
+    if (node->init_size) {
+        init_size = node->init_size->accept(*this);
+    }
+    return make_array(init_list, init_size);
+}
 
 std::shared_ptr<ASTNode>
 ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> node) {

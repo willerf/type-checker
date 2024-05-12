@@ -3,6 +3,7 @@
 #include <functional>
 #include <map>
 
+#include "array_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -22,6 +23,7 @@
 class EvalVisitor: public Visitor<EvalFunc> {
   public:
     std::map<std::string, std::shared_ptr<CallableFunc>> func_map;
+    EvalFunc visit(std::shared_ptr<ArrayNode>) override;
     EvalFunc visit(std::shared_ptr<AssignNode>) override;
     EvalFunc visit(std::shared_ptr<BinaryExprNode>) override;
     EvalFunc visit(std::shared_ptr<CallNode>) override;

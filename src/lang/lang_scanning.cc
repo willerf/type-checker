@@ -23,6 +23,7 @@ static const std::map<char, Terminal> one_char_symbols = {
     {'/', Terminal::SLASH},    {'%', Terminal::PCT},
     {'(', Terminal::LPAREN},   {')', Terminal::RPAREN},
     {'{', Terminal::LBRACE},   {'}', Terminal::RBRACE},
+    {'[', Terminal::LBRACKET}, {']', Terminal::RBRACKET},
     {',', Terminal::COMMA},    {';', Terminal::SEMI},
     {'|', Terminal::PIPE},     {'&', Terminal::AMPERSAND},
 };

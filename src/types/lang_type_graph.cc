@@ -106,7 +106,7 @@ PtrLType LangTypeGraph::add_tc(PtrLType ptr_ltype, LTypeClass tc) {
                 }
             },
             [&](LGeneric& lgeneric) { lgeneric.insert(tc); },
-            [&](LCustom& lcustom) {
+            [&](LArray& larray) {
                 throw TypeError(**ptr_ltype, LGeneric {tc});
             }},
         **ptr_ltype
