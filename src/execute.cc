@@ -73,7 +73,5 @@ void execute(std::vector<std::string> input_file_paths) {
         }
 
         auto result = (*prog_main)({});
-
-        std::cout << "Exited with: " << to_string(result) << std::endl;
     }
 }
