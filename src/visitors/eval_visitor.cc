@@ -7,6 +7,7 @@
 #include <iterator>
 #include <memory>
 
+#include "array_access_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -38,6 +39,16 @@ get_val(std::variant<LDataValue, std::shared_ptr<LDataValue>> val) {
     );
 }
 
+EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
+    auto access_target_expr = node->access_target->accept(*this);
+    auto index_expr = node->index->accept(*this);
+    return [=](auto& env) {
+        auto access_target = get_val(access_target_expr(env));
+        auto index = get_val(index_expr(env));
+        return std::get<LArrayValue>(access_target).data.at(std::get<int>(index));
+    };
+}
+
 EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {
     std::vector<EvalFunc> init_list;
     for (auto init_val : node->init_list) {
@@ -50,7 +61,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {
             size_t size = std::get<int>(get_val(init_size(env)));
             std::vector<std::shared_ptr<LDataValue>> arr(size);
             for (int i = 0; i < size; i++) {
-                arr[i] = std::make_shared<LDataValue>(0);
+                arr[i] = std::make_shared<LDataValue>(std::monostate{});
             }
             for (int i = 0; i < std::min(size, init_list.size()); i++) {
                 arr[i] =

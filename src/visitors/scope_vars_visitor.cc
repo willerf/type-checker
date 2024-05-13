@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "array_access_node.h"
 #include "array_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
@@ -20,6 +21,14 @@
 #include "var_decl_node.h"
 #include "visitor.h"
 #include "while_node.h"
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
+    auto access_target = node->access_target->accept(*this);
+    auto index = node->index->accept(*this);
+
+    return make_array_access(access_target, index);
+}
 
 std::shared_ptr<ASTNode>
 ScopedVarsVisitor::visit(std::shared_ptr<ArrayNode> node) {

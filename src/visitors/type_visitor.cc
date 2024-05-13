@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 
+#include "array_access_node.h"
 #include "binary_expr_node.h"
 #include "fn_node.h"
 #include "lang_type.h"
@@ -12,6 +13,22 @@
 #include "unreachable_error.h"
 #include "var_decl_node.h"
 #include "visitor.h"
+
+PtrLType TypeVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
+    auto access_target = node->access_target->accept(*this);
+    auto index = node->index->accept(*this);
+    
+    auto int_type = make_lt(LPrim::Int);
+    ltg.add_type(int_type);
+    ltg.union_types(index, int_type);
+
+    if (!std::holds_alternative<LArray>(**access_target)) {
+        std::cerr << "ERROR: Cannot access element of type " << to_string(**access_target) << " with [...]" << std::endl;
+        exit(1);
+    }
+
+    return std::get<LArray>(**access_target).ltype;
+}
 
 PtrLType TypeVisitor::visit(std::shared_ptr<ArrayNode> node) {
     auto array_elem_type = make_lt(LGeneric {});

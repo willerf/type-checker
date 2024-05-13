@@ -6,6 +6,7 @@
 #include <set>
 #include <stdexcept>
 
+#include "array_access_node.h"
 #include "array_node.h"
 #include "binary_expr_node.h"
 #include "call_node.h"
@@ -95,6 +96,14 @@ std::shared_ptr<ASTNode> extract_expr(ParseNode root) {
         auto args = extract_optargs(optargs);
 
         result = make_call(name, args);
+    } else if (prod == std::vector<State> {NonTerminal::p8, NonTerminal::expr, Terminal::LBRACKET, NonTerminal::expr, Terminal::RBRACKET}) {
+        ParseNode access_target_node = root.children.at(0);
+        auto access_target = extract_expr(access_target_node);
+
+        ParseNode index_node = root.children.at(2);
+        auto index = extract_expr(index_node);
+
+        result = make_array_access(access_target, index);
     } else if (root.children.size() == 1 && std::holds_alternative<NonTerminal>(root.children.at(0).state) && expr_non_terminals.count(std::get<NonTerminal>(root.children.at(0).state))) {
         // recursively call into next operator precedence layer
         ParseNode expr = root.children.at(0);

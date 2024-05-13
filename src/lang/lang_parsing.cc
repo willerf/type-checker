@@ -126,6 +126,11 @@ static const std::map<NonTerminal, std::vector<Production>> productions = {
            Terminal::LPAREN,
            NonTerminal::optargs,
            Terminal::RPAREN}},
+         {NonTerminal::p8,
+          {NonTerminal::expr,
+           Terminal::LBRACKET,
+           NonTerminal::expr,
+           Terminal::RBRACKET}}
      }},
     {NonTerminal::optargs,
      {{NonTerminal::optargs, {NonTerminal::args}}, {NonTerminal::optargs, {}}}},

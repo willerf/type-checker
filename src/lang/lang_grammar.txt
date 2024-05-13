@@ -49,6 +49,7 @@ p8 LBRACKET optargs RBRACKET
 p8 LBRACKET optargs RBRACKET LPAREN expr RPAREN
 p8 LPAREN expr RPAREN
 p8 ID LPAREN optargs RPAREN
+p8 expr LBRACKET expr RBRACKET
 optargs args
 optargs
 args expr COMMA args

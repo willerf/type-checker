@@ -24,6 +24,7 @@
 class EvalVisitor: public Visitor<EvalFunc> {
   public:
     std::map<std::string, std::shared_ptr<CallableFunc>> func_map;
+    EvalFunc visit(std::shared_ptr<ArrayAccessNode>) override;
     EvalFunc visit(std::shared_ptr<ArrayNode>) override;
     EvalFunc visit(std::shared_ptr<AssignNode>) override;
     EvalFunc visit(std::shared_ptr<BinaryExprNode>) override;
