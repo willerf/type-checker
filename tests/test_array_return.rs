@@ -1,5 +1,24 @@
 
-fn main() {}
+fn main() {
+
+    let a = empty_arr();
+    let b = empty_arr2();
+    let c = int_arr();
+    let d = int_arr2();
+    let e = empty_2d_arr();
+    let f = empty_2d_arr2();
+    let g = int_2d_arr();
+    let h = int_2d_arr2();
+
+    println(a);
+    println(b);
+    println(c);
+    println(d);
+    println(e);
+    println(f);
+    println(g);
+    println(h);
+}
 
 fn empty_arr() {
     return [];

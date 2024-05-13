@@ -38,7 +38,38 @@ get_val(std::variant<LDataValue, std::shared_ptr<LDataValue>> val) {
     );
 }
 
-EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {}
+EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {
+    std::vector<EvalFunc> init_list;
+    for (auto init_val : node->init_list) {
+        init_list.push_back(init_val->accept(*this));
+    }
+
+    if (node->init_size) {
+        auto init_size = node->init_size->accept(*this);
+        return [=](auto& env) {
+            size_t size = std::get<int>(get_val(init_size(env)));
+            std::vector<std::shared_ptr<LDataValue>> arr(size);
+            for (int i = 0; i < size; i++) {
+                arr[i] = std::make_shared<LDataValue>(0);
+            }
+            for (int i = 0; i < std::min(size, init_list.size()); i++) {
+                arr[i] =
+                    std::make_shared<LDataValue>(get_val(init_list[i](env)));
+            }
+            return LArrayValue {arr};
+        };
+    } else {
+        return [=](auto& env) {
+            auto size = init_list.size();
+            std::vector<std::shared_ptr<LDataValue>> arr(size);
+            for (int i = 0; i < size; i++) {
+                arr[i] =
+                    std::make_shared<LDataValue>(get_val(init_list[i](env)));
+            }
+            return LArrayValue {arr};
+        };
+    }
+}
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
     auto lhs_expr = node->lhs->accept(*this);
@@ -150,6 +181,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<FnNode> node) {
                     [&](const bool& val) { return LDataValue {val}; },
                     [&](const char& val) { return LDataValue {val}; },
                     [&](const std::string& val) { return LDataValue {val}; },
+                    [&](const LArrayValue& val) { return LDataValue {val}; },
                 },
                 std::get<LRetValue>(result)
             );
@@ -245,6 +277,9 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<RetNode> node) {
                 [&](const bool& val) { return LDataValue {LRetValue {val}}; },
                 [&](const char& val) { return LDataValue {LRetValue {val}}; },
                 [&](const std::string& val) {
+                    return LDataValue {LRetValue {val}};
+                },
+                [&](const LArrayValue& val) {
                     return LDataValue {LRetValue {val}};
                 },
                 [&](const LRetValue& val) {

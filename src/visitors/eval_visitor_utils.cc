@@ -1,6 +1,7 @@
 
 #include "eval_visitor_utils.h"
 
+#include "eval_visitor_types.h"
 #include "lang_type_utils.h"
 #include "unreachable_error.h"
 
@@ -266,6 +267,19 @@ std::string to_string(const LDataValue& expr) {
                 ;
             },
             [](const std::string& expr) { return expr; },
+            [](const LArrayValue& expr) {
+                std::string result = "[";
+                for (const auto& val : expr.data) {
+                    result += to_string(*val);
+                    result += ", ";
+                }
+                if (!result.ends_with("[")) {
+                    result.pop_back();
+                    result.pop_back();
+                }
+                result += "]";
+                return result;
+            },
             [](const LRetValue& expr) {
                 UNREACHABLE;
                 return std::string();
