@@ -17,6 +17,7 @@
 #include "stmt_block_node.h"
 #include "unary_expr_node.h"
 #include "var_access_node.h"
+#include "var_decl_node.h"
 #include "visitor.h"
 #include "while_node.h"
 
@@ -35,5 +36,6 @@ class EvalVisitor: public Visitor<EvalFunc> {
     EvalFunc visit(std::shared_ptr<StmtBlockNode>) override;
     EvalFunc visit(std::shared_ptr<UnaryExprNode>) override;
     EvalFunc visit(std::shared_ptr<VarAccessNode>) override;
+    EvalFunc visit(std::shared_ptr<VarDeclNode>) override;
     EvalFunc visit(std::shared_ptr<WhileNode>) override;
 };

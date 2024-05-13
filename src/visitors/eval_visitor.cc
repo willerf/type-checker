@@ -23,16 +23,34 @@
 #include "unary_expr_node.h"
 #include "unreachable_error.h"
 #include "var_access_node.h"
+#include "var_decl_node.h"
 #include "visitor.h"
 #include "while_node.h"
+
+static LDataValue
+get_val(std::variant<LDataValue, std::shared_ptr<LDataValue>> val) {
+    return std::visit(
+        overloaded {
+            [](LDataValue& v) { return v; },
+            [](std::shared_ptr<LDataValue>& v) { return *v; },
+        },
+        val
+    );
+}
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {}
 
 EvalFunc EvalVisitor::visit(std::shared_ptr<AssignNode> node) {
-    auto expr = node->rhs->accept(*this);
-    auto var = node->lhs.impl;
+    auto lhs_expr = node->lhs->accept(*this);
+    auto rhs_expr = node->rhs->accept(*this);
     return [=](auto& env) {
-        env[var] = expr(env);
+        auto lhs = lhs_expr(env);
+        auto rhs = rhs_expr(env);
+        if (std::holds_alternative<LDataValue>(lhs)) {
+            std::cerr << "ERROR: Cannot assign to expression found on line "
+                      << node->line_no << std::endl;
+        }
+        *std::get<std::shared_ptr<LDataValue>>(lhs) = get_val(rhs);
         return LDataValue {std::monostate {}};
     };
 }
@@ -42,31 +60,57 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<BinaryExprNode> node) {
     auto rhs = node->rhs->accept(*this);
     switch (node->op) {
         case BinaryOp::OR:
-            return [=](auto& env) { return lhs(env) || rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) || get_val(rhs(env));
+            };
         case BinaryOp::AND:
-            return [=](auto& env) { return lhs(env) && rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) && get_val(rhs(env));
+            };
         case BinaryOp::EQ:
-            return [=](auto& env) { return lhs(env) == rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) == get_val(rhs(env));
+            };
         case BinaryOp::NE:
-            return [=](auto& env) { return lhs(env) != rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) != get_val(rhs(env));
+            };
         case BinaryOp::LT:
-            return [=](auto& env) { return lhs(env) < rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) < get_val(rhs(env));
+            };
         case BinaryOp::GT:
-            return [=](auto& env) { return lhs(env) > rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) > get_val(rhs(env));
+            };
         case BinaryOp::LE:
-            return [=](auto& env) { return lhs(env) <= rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) <= get_val(rhs(env));
+            };
         case BinaryOp::GE:
-            return [=](auto& env) { return lhs(env) >= rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) >= get_val(rhs(env));
+            };
         case BinaryOp::PLUS:
-            return [=](auto& env) { return lhs(env) + rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) + get_val(rhs(env));
+            };
         case BinaryOp::MINUS:
-            return [=](auto& env) { return lhs(env) - rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) - get_val(rhs(env));
+            };
         case BinaryOp::TIMES:
-            return [=](auto& env) { return lhs(env) * rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) * get_val(rhs(env));
+            };
         case BinaryOp::DIVIDE:
-            return [=](auto& env) { return lhs(env) / rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) / get_val(rhs(env));
+            };
         case BinaryOp::MOD:
-            return [=](auto& env) { return lhs(env) % rhs(env); };
+            return [=](auto& env) {
+                return get_val(lhs(env)) % get_val(rhs(env));
+            };
     }
 }
 
@@ -79,7 +123,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<CallNode> node) {
     return [=](auto& env) {
         std::vector<LDataValue> arg_vals;
         for (auto& arg : args) {
-            arg_vals.push_back(arg(env));
+            arg_vals.push_back(get_val(arg(env)));
         }
         return (*func)(arg_vals);
     };
@@ -95,9 +139,9 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<FnNode> node) {
         assert(args.size() == params.size());
         LEnvironment env;
         for (int i = 0; i < params.size(); i++) {
-            env[params.at(i)] = args.at(i);
+            env[params.at(i)] = std::make_shared<LDataValue>(args.at(i));
         }
-        auto result = stmtblock(env);
+        auto result = get_val(stmtblock(env));
         if (std::holds_alternative<LRetValue>(result)) {
             return std::visit(
                 overloaded {
@@ -129,7 +173,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<IfNode> node) {
     }
     if (elses) {
         return [=](auto& env) {
-            auto result = condition(env);
+            auto result = get_val(condition(env));
             if (std::get<bool>(result)) {
                 return thens(env);
             } else {
@@ -138,11 +182,11 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<IfNode> node) {
         };
     } else {
         return [=](auto& env) {
-            auto result = condition(env);
+            auto result = get_val(condition(env));
             if (std::get<bool>(result)) {
                 return thens(env);
             }
-            return LDataValue {std::monostate {}};
+            return EvalFuncRet {LDataValue {std::monostate {}}};
         };
     }
 }
@@ -191,7 +235,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
 EvalFunc EvalVisitor::visit(std::shared_ptr<RetNode> node) {
     auto expr = node->expr->accept(*this);
     return [=](auto& env) {
-        auto val = expr(env);
+        auto val = get_val(expr(env));
         return std::visit(
             overloaded {
                 [&](const std::monostate& val) {
@@ -221,7 +265,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<StmtBlockNode> node) {
     return [=](auto& env) {
         auto env_copy = env;
         for (auto stmt : stmts) {
-            auto val = stmt(env);
+            auto val = get_val(stmt(env));
             if (std::holds_alternative<LRetValue>(val)) {
                 LEnvironment result;
                 std::set_intersection(
@@ -258,7 +302,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
     auto expr = node->expr->accept(*this);
     switch (node->op) {
         case UnaryOp::NOT:
-            return [=](auto& env) { return !expr(env); };
+            return [=](auto& env) { return !get_val(expr(env)); };
     }
 }
 
@@ -267,17 +311,26 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<VarAccessNode> node) {
     return [=](auto& env) { return env[var]; };
 }
 
+EvalFunc EvalVisitor::visit(std::shared_ptr<VarDeclNode> node) {
+    auto var = node->var.impl;
+    auto rhs = node->rhs->accept(*this);
+    return [=](auto& env) {
+        env[var] = std::make_shared<LDataValue>(get_val(rhs(env)));
+        return LDataValue {std::monostate {}};
+    };
+}
+
 EvalFunc EvalVisitor::visit(std::shared_ptr<WhileNode> node) {
     auto condition = node->condition->accept(*this);
     auto body = node->body->accept(*this);
     return [=](auto& env) {
-        auto result = condition(env);
+        auto result = get_val(condition(env));
         while (std::get<bool>(result)) {
-            auto val = body(env);
+            auto val = get_val(body(env));
             if (!std::holds_alternative<std::monostate>(val)) {
                 return val;
             }
-            result = condition(env);
+            result = get_val(condition(env));
         }
         return LDataValue {std::monostate {}};
     };

@@ -10,6 +10,7 @@
 #include "lang_type.h"
 #include "unary_expr_node.h"
 #include "unreachable_error.h"
+#include "var_decl_node.h"
 #include "visitor.h"
 
 PtrLType TypeVisitor::visit(std::shared_ptr<ArrayNode> node) {
@@ -33,10 +34,7 @@ PtrLType TypeVisitor::visit(std::shared_ptr<ArrayNode> node) {
 }
 
 PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
-    auto lhs_type = node->lhs.impl->ptr_ltype;
-    if (node->declaration) {
-        ltg.add_type(lhs_type);
-    }
+    auto lhs_type = node->lhs->accept(*this);
     auto rhs_type = node->rhs->accept(*this);
     ltg.union_types(lhs_type, rhs_type);
     return make_lt(LPrim::Invalid);
@@ -178,6 +176,14 @@ PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
 
     std::cerr << "UnaryExpr error" << std::endl;
     exit(1);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<VarDeclNode> node) {
+    auto var_type = node->var.impl->ptr_ltype;
+    ltg.add_type(var_type);
+    auto rhs_type = node->rhs->accept(*this);
+    ltg.union_types(var_type, rhs_type);
+    return make_lt(LPrim::Invalid);
 }
 
 PtrLType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {
