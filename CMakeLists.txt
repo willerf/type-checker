@@ -10,6 +10,7 @@ add_library(type_checker_lib STATIC
     src/lang/lang_parsing.cc
     src/lang/lang_scanning.cc
     src/lang/state.cc
+    src/lang/std_functions.cc
     src/lex_parse/memo_map.cc
     src/lex_parse/parse_earley.cc
     src/lex_parse/parse_node.cc

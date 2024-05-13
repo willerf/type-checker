@@ -20,6 +20,7 @@
 #include "literal_node.h"
 #include "program_node.h"
 #include "ret_node.h"
+#include "std_functions.h"
 #include "stmt_block_node.h"
 #include "unary_expr_node.h"
 #include "unreachable_error.h"
@@ -45,7 +46,8 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
     return [=](auto& env) {
         auto access_target = get_val(access_target_expr(env));
         auto index = get_val(index_expr(env));
-        return std::get<LArrayValue>(access_target).data.at(std::get<int>(index));
+        return std::get<LArrayValue>(access_target)
+            .data.at(std::get<int>(index));
     };
 }
 
@@ -61,7 +63,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ArrayNode> node) {
             size_t size = std::get<int>(get_val(init_size(env)));
             std::vector<std::shared_ptr<LDataValue>> arr(size);
             for (int i = 0; i < size; i++) {
-                arr[i] = std::make_shared<LDataValue>(std::monostate{});
+                arr[i] = std::make_shared<LDataValue>(std::monostate {});
             }
             for (int i = 0; i < std::min(size, init_list.size()); i++) {
                 arr[i] =
@@ -261,14 +263,7 @@ EvalFunc EvalVisitor::visit(std::shared_ptr<ProgramNode> node) {
     for (auto fn_node : node->fns) {
         fn_node->accept(*this);
     }
-    (*func_map["print"]) = [=](auto args) {
-        std::cout << to_string(args.at(0));
-        return LDataValue {std::monostate {}};
-    };
-    (*func_map["println"]) = [=](auto args) {
-        std::cout << to_string(args.at(0)) << std::endl;
-        return LDataValue {std::monostate {}};
-    };
+    add_std_function_impls(func_map);
     return [](auto& env) {
         UNREACHABLE;
         return LDataValue {std::monostate {}};

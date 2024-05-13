@@ -18,6 +18,7 @@
 #include "lang_type.h"
 #include "lang_type_utils.h"
 #include "scope_vars_visitor.h"
+#include "std_functions.h"
 #include "type_printer.h"
 #include "type_visitor.h"
 
@@ -38,20 +39,9 @@ void type_check(std::vector<std::string> input_file_paths) {
         ScopedVarsVisitor svv;
         auto program_node2 = program_node->accept(svv);
 
-        std::static_pointer_cast<ProgramNode>(program_node2)
-            ->fns.push_back(make_fn(
-                "print",
-                {Variable {}},
-                make_stmt_block({}),
-                LGeneric({})
-            ));
-        std::static_pointer_cast<ProgramNode>(program_node2)
-            ->fns.push_back(make_fn(
-                "println",
-                {Variable {}},
-                make_stmt_block({}),
-                LGeneric({})
-            ));
+        add_std_functions_to_ast(
+            std::static_pointer_cast<ProgramNode>(program_node2)
+        );
 
         TypeVisitor tv;
         program_node2->accept(tv);
