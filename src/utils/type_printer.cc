@@ -11,52 +11,65 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
         std::string output = "";
         auto fn = std::static_pointer_cast<FnNode>(node);
 
-        std::map<LType, char> type_vars;
         char c = 'a';
-        for (auto param : fn->params) {
-            auto ltype = *param.impl->ptr_ltype;
-            if (!type_vars.contains(ltype)) {
-                type_vars[ltype] = c++;
-            }
-        }
-
-        output += fn->name + " [";
-        for (auto& [ltype, c] : type_vars) {
+        std::map<LType, char> type_vars;
+        std::function<void(LType)> add_single_type = [&](LType ltype) {
             std::visit(
                 overloaded {
                     [](LPrim& lprim) {},
                     [&](LGeneric& tcs) {
-                        output += "\'";
-                        output += type_vars.at(ltype);
-                        for (auto& tc : tcs) {
-                            output += " " + to_string(tc);
+                        if (!type_vars.contains(ltype)) {
+                            type_vars[ltype] = c;
+                            output += "\'";
+                            output += type_vars.at(ltype);
+                            for (auto& tc : tcs) {
+                                output += " " + to_string(tc);
+                            }
+                            output += ", ";
+                            c++;
                         }
-                        output += ", ";
                     },
-                    [](LArray& larray) {}},
+                    [&](LArray& larray) { add_single_type(*larray.ltype); }},
                 *ltype
             );
-        }
+        };
 
-        if (!output.ends_with("[")) {
-            output.pop_back();
-            output.pop_back();
-        }
-
-        output += "]: (";
+        output += fn->name + " {";
         for (auto param : fn->params) {
             auto ltype = *param.impl->ptr_ltype;
-            std::visit(
-                overloaded {
-                    [&](LPrim& lprim) { output += to_string(ltype) + ", "; },
-                    [&](LGeneric& tcs) {
-                        output += "\'";
-                        output += type_vars.at(ltype);
-                        output += ", ";
-                    },
-                    [&](LArray& larray) { output += to_string(ltype) + ", "; }},
-                *ltype
-            );
+            add_single_type(ltype);
+        }
+
+        if (!output.ends_with("{")) {
+            output.pop_back();
+            output.pop_back();
+            output += "}";
+        } else {
+            output.pop_back();
+            output.pop_back();
+        }
+
+        std::function<std::string(LType)> to_string_single_type =
+            [&](LType ltype) {
+                return std::visit(
+                    overloaded {
+                        [&](LPrim& lprim) { return to_string(ltype); },
+                        [&](LGeneric& tcs) {
+                            return std::string("\'")
+                                + std::string(1, type_vars.at(ltype));
+                        },
+                        [&](LArray& larray) {
+                            return "[" + to_string_single_type(*larray.ltype)
+                                + "]";
+                        }},
+                    *ltype
+                );
+            };
+
+        output += ": (";
+        for (auto param : fn->params) {
+            auto ltype = *param.impl->ptr_ltype;
+            output += to_string_single_type(ltype) + ", ";
         }
         if (!fn->params.empty()) {
             output.pop_back();
@@ -65,17 +78,7 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
         output += ") -> ";
 
         auto ltype = *fn->ret_type;
-
-        std::visit(
-            overloaded {
-                [&](LPrim& lprim) { output += to_string(ltype); },
-                [&](LGeneric& tcs) {
-                    output += "\'";
-                    output += type_vars.at(ltype);
-                },
-                [&](LArray& larray) { output += to_string(ltype); }},
-            *ltype
-        );
+        output += to_string_single_type(ltype);
 
         std::cout << output << std::endl;
     }

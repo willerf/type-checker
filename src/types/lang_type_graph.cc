@@ -44,6 +44,13 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                     throw TypeError(**ptr_t1, **ptr_t2);
                 }
             },
+            [&](const LGeneric& t1, const LArray& t2) {
+                if (t1.empty()) {
+                    result_type = ptr_t2;
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
             [&](const LGeneric& t1, const LGeneric& t2) {
                 LGeneric tcs = {};
                 std::set_union(
@@ -55,7 +62,20 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                 );
                 result_type = make_lt(tcs);
             },
-            [](const auto&, const auto&) { UNREACHABLE; },
+            [&](const LArray& t1, const LGeneric& t2) {
+                if (t2.empty()) {
+                    result_type = ptr_t1;
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](const LArray& t1, const LArray& t2) {
+                auto elem_type = union_types(t1.ltype, t2.ltype);
+                result_type = make_lt(LArray {elem_type});
+            },
+            [&](const auto&, const auto&) {
+                throw TypeError(**ptr_t1, **ptr_t2);
+            },
         },
         **ptr_t1,
         **ptr_t2
@@ -157,6 +177,14 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
                     throw TypeError(**ptr_t1, **ptr_t2);
                 }
             },
+            [&](LGeneric& t1, LArray& t2) {
+                if (t1.empty()) {
+                    **ptr_t1 = **ptr_t2;
+                    modified = true;
+                } else {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
             [&](LGeneric& t1, LGeneric& t2) {
                 size_t t1_size = t1.size();
                 t1.insert(t2.begin(), t2.end());
@@ -164,7 +192,13 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
                     modified = true;
                 }
             },
-            [](auto&, auto&) { UNREACHABLE; },
+            [&](LArray& t1, LGeneric& t2) {
+                if (!t2.empty()) {
+                    throw TypeError(**ptr_t1, **ptr_t2);
+                }
+            },
+            [&](LArray& t1, LArray& t2) { sub_type(t1.ltype, t2.ltype); },
+            [&](auto&, auto&) { throw TypeError(**ptr_t1, **ptr_t2); },
         },
         **ptr_t1,
         **ptr_t2
