@@ -39,6 +39,7 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
             auto ltype = *param.impl->ptr_ltype;
             add_single_type(ltype);
         }
+        add_single_type(*fn->ret_type);
 
         if (!output.ends_with("{")) {
             output.pop_back();
@@ -77,8 +78,7 @@ void print_types(std::shared_ptr<ProgramNode> program_node) {
         }
         output += ") -> ";
 
-        auto ltype = *fn->ret_type;
-        output += to_string_single_type(ltype);
+        output += to_string_single_type(*fn->ret_type);
 
         std::cout << output << std::endl;
     }
