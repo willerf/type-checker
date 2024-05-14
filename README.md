@@ -46,11 +46,11 @@ type definition is inferred:
 
 `max {'a Ord}: ('a, 'a) -> 'a`
 
-To the left of the colon, we can see all of the generics specified. Generic type variables
-are indicated by a single quote followed by a lower case letter. Following the type variable
-are the type class restrictions to the type, in this case the restriction `Ord` is specified.
-Indicating the type must be orderable. There are 7 type classes in total, Plus, Minus, Star, 
-Slash, Percent, Eq, and Ord.
+To the left of the colon, we can see a set of generics specified between curly braces. Generic 
+type variables are indicated by a single quote followed by a lower case letter. Following the 
+type variable are the type class restrictions to the type, in this case the restriction `Ord` 
+is specified. Indicating the type must be orderable. There are 7 type classes in total, Plus, 
+Minus, Star, Slash, Percent, Eq, and Ord.
 
 To the right of the colon, we can see that the function takes two parameters of the same type `'a` and
 also returns a value of type `'a`.
@@ -60,21 +60,21 @@ Consider the following function that implements and utilizes a `push` function.
 
 ```rs
 fn main() {
-    let list1 = [1, 2, 3];
-    println(push(list1, 4)); 
+    let arr1 = [1, 2, 3];
+    println(push(arr1, 4)); 
 
-    let list2 = ["Hello", "World"];
-    println(push(list2, "!!")); 
+    let arr2 = ["Hello", "World"];
+    println(push(arr2, "!!")); 
 }
 
-fn push(list, elem) {
-    let size = len(list);
-    // create new list of length: size + 1
+fn push(arr, elem) {
+    let size = len(arr);
+    // create new array of length: size + 1
     let result = [](size + 1);
 
     let i = 0;
     while (i < size) {
-        result[i] = list[i];
+        result[i] = arr[i];
         i = i + 1;
     }
 
@@ -84,14 +84,15 @@ fn push(list, elem) {
 ```
 Running `./type-check`:
 
-push {'a}: (['a], 'a) -> ['a]
+`push {'a}: (['a], 'a) -> ['a]`
 
-As described in English, `push` is a function that takes as arguments a list containing elements 
-of type `'a` and an element of type `'a` and returns a list containing elements of type `'a`.
+As described in English, `push` is a function that takes as arguments an array containing elements 
+of type `'a` and an element of type `'a` and returns an array containing elements of type `'a`.
 
 Running `./execute`:
 
 [1, 2, 3, 4]
+
 [Hello, World, !!]
 
 More examples can be found in the `tests` directory.
