@@ -23,9 +23,11 @@ PtrLType TypeVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
     ltg.union_types(index, int_type);
 
     if (!std::holds_alternative<LArray>(**access_target)) {
-        std::cerr << "ERROR: Cannot access element of type "
-                  << to_string(**access_target) << " with [...]" << std::endl;
-        exit(1);
+        auto elem_type = make_lt(LGeneric {});
+        ltg.add_type(elem_type);
+        auto arr_type = make_lt(LArray {elem_type});
+        ltg.add_type(arr_type);
+        ltg.union_types(access_target, arr_type);
     }
 
     return std::get<LArray>(**access_target).ltype;

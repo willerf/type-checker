@@ -45,7 +45,7 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                 }
             },
             [&](const LGeneric& t1, const LArray& t2) {
-                if (t1.empty()) {
+                if (compatible(t2, t1)) {
                     result_type = ptr_t2;
                 } else {
                     throw TypeError(**ptr_t1, **ptr_t2);
@@ -63,7 +63,7 @@ PtrLType LangTypeGraph::union_types(PtrLType ptr_t1, PtrLType ptr_t2) {
                 result_type = make_lt(tcs);
             },
             [&](const LArray& t1, const LGeneric& t2) {
-                if (t2.empty()) {
+                if (compatible(t1, t2)) {
                     result_type = ptr_t1;
                 } else {
                     throw TypeError(**ptr_t1, **ptr_t2);
@@ -127,7 +127,9 @@ PtrLType LangTypeGraph::add_tc(PtrLType ptr_ltype, LTypeClass tc) {
             },
             [&](LGeneric& lgeneric) { lgeneric.insert(tc); },
             [&](LArray& larray) {
-                throw TypeError(**ptr_ltype, LGeneric {tc});
+                if (!compatible(larray, LGeneric {tc})) {
+                    throw TypeError(**ptr_ltype, LGeneric {tc});
+                }
             }},
         **ptr_ltype
     );
@@ -178,7 +180,7 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
                 }
             },
             [&](LGeneric& t1, LArray& t2) {
-                if (t1.empty()) {
+                if (compatible(t2, t1)) {
                     **ptr_t1 = **ptr_t2;
                     modified = true;
                 } else {
@@ -193,7 +195,7 @@ bool LangTypeGraph::sub_type(PtrLType ptr_t1, PtrLType ptr_t2) {
                 }
             },
             [&](LArray& t1, LGeneric& t2) {
-                if (!t2.empty()) {
+                if (!compatible(t1, t2)) {
                     throw TypeError(**ptr_t1, **ptr_t2);
                 }
             },
@@ -245,7 +247,8 @@ void LangTypeGraph::reduce() {
     } while (modified);
 
     for (auto& [_, fn] : fn_map) {
-        if (type_sets.at(type_id.at(fn->ret_type)).size() == 1) {
+        if (type_sets.at(type_id.at(fn->ret_type)).size() == 1
+            && std::holds_alternative<LGeneric>(**fn->ret_type)) {
             **fn->ret_type = LPrim::Unit;
         }
     }

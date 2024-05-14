@@ -12,3 +12,4 @@ template<class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
 bool compatible(LPrim lprim, LGeneric lgeneric);
+bool compatible(LArray larray, LGeneric lgeneric);

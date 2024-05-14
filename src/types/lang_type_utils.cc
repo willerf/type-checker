@@ -1,6 +1,8 @@
 
 #include "lang_type_utils.h"
 
+#include "lang_type.h"
+
 bool compatible(LPrim lprim, LGeneric lgeneric) {
     if (lgeneric.empty()) {
         return true;
@@ -33,12 +35,29 @@ bool compatible(LPrim lprim, LGeneric lgeneric) {
             compat_set = {LTypeClass::Eq, LTypeClass::Ord};
             break;
     }
-    std::set_intersection(
-        compat_set.begin(),
-        compat_set.end(),
+    std::set_difference(
         lgeneric.begin(),
         lgeneric.end(),
+        compat_set.begin(),
+        compat_set.end(),
         std::back_inserter(result)
     );
-    return !result.empty();
+    return result.empty();
+}
+
+bool compatible(LArray larray, LGeneric lgeneric) {
+    if (lgeneric.empty()) {
+        return true;
+    }
+
+    LGeneric compat_set = {LTypeClass::Eq};
+    std::vector<LTypeClass> result;
+    std::set_difference(
+        lgeneric.begin(),
+        lgeneric.end(),
+        compat_set.begin(),
+        compat_set.end(),
+        std::back_inserter(result)
+    );
+    return result.empty();
 }
