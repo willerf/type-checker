@@ -18,7 +18,6 @@ form, a single implementation could be called by multiple sets of arguments of v
 
 ### Understanding Outputs
 #### Concrete Types Example
-Consider the following example.
 ```rs
 fn increment(x) {
     return x + 1;
@@ -33,7 +32,6 @@ The above type definition can be interpreted as follows:
 - To the right of the arrow is the return type, in this case it is also `int`
 
 #### Generic Types Example
-Let us consider an example using generic types.
 ```rs
 fn max(x, y) {
     if (x > y) {
