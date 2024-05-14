@@ -129,7 +129,7 @@ with the filepath provided as an argument. To execute your program using the pro
 
 `Literals:` int - `5`, bool - `true`/`false`, char - `'a'`, str - `"Hello"`, array - `[1, 2, 3]`
 
-`Constructs:` let, if else, while, function calls/recursion
+`Constructs:` let, if else, while, function calls, recursion/mutual recursion
 
 `Provided Functions:`
 - `print` {'a}: ('a) -> unit
