@@ -1,9 +1,20 @@
 
 fn main() {
-    let arr = [96, 18, 68, 9, 95, 92, 60, 75, 75, 81, 44, 35, 32, 43, 92, 63, 24, 28, 99, 1, 45, 62, 8, 26, 27];
-    println(bubble_sort(arr));   
-    println(insertion_sort(arr));   
-    println(merge_sort(arr));   
+    let arr1 = [96, 18, 68, 9, 95, 92, 60, 75, 75, 81, 44, 35, 32, 43, 92, 63, 24, 28, 99, 1, 45, 62, 8, 26, 27];
+    let arr2 = ['j', 'w', 'b', 't', 'q', 'z', 'k', 'a', 'l', 'r', 'p', 'y', 'n', 'h', 'm', 'e', 'd', 'f', 'v', 'u', 'c', 'o', 'g', 's', 'i', 'x'];
+    let arr3 = ["apple", "zebra", "banana", "kiwi", "grape", "orange", "mango", "cherry", "pear", "blueberry"];
+
+    println(bubble_sort(arr1));   
+    println(insertion_sort(arr1));   
+    println(merge_sort(arr1));   
+    
+    println(bubble_sort(arr2));   
+    println(insertion_sort(arr2));   
+    println(merge_sort(arr2));   
+
+    println(bubble_sort(arr3));   
+    println(insertion_sort(arr3));   
+    println(merge_sort(arr3));   
 }
 
 fn bubble_sort(arr) {
