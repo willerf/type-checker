@@ -1,10 +1,18 @@
 ### Table of Contents
 
 - [About](https://github.com/willerf/type-checker#about)
+- [Understanding Outputs](https://github.com/willerf/type-checker#understanding-outputs)
+- [Complete Example](https://github.com/willerf/type-checker#complete-example)
+- [Getting Started](https://github.com/willerf/type-checker#getting-started)
+  - [Install & Build](https://github.com/willerf/type-checker#install--build)
+  - [User Guide](https://github.com/willerf/type-checker#user-guide)
+- [Programming Language Features](https://github.com/willerf/type-checker#programming-language-features)
 
 ### About
 This fun little research project explores algorithms to accomplish full type inference for imperative programming languages.
-The syntax of the sample programming language has many similiarities to Rust but with a few key differences. 
+The syntax of the sample programming language has many similiarities to Rust but with a few key differences. Most notably, the
+programmer cannot specify any types, all of them are inferred. Since all function types are inferred in the most general
+form, a single implementation could be called by multiple sets of arguments of varying types.
 
 ### Understanding Outputs
 Consider the following example:
@@ -41,12 +49,52 @@ type definition is inferred:
 To the left of the colon, we can see all of the generics specified. Generic type variables
 are indicated by a single quote followed by a lower case letter. Following the type variable
 are the type class restrictions to the type, in this case the restriction `Ord` is specified.
-Indicating the type must be orderable.
+Indicating the type must be orderable. There are 7 type classes in total, Plus, Minus, Star, 
+Slash, Percent, Eq, and Ord.
 
 To the right of the colon, we can see that the function takes two parameters of the same type `'a` and
 also returns a value of type `'a`.
 
 ### Complete Example
+Consider the following function that implements and utilizes a `push` function.
+
+```rs
+fn main() {
+    let list1 = [1, 2, 3];
+    println(push(list1, 4)); 
+
+    let list2 = ["Hello", "World"];
+    println(push(list2, "!!")); 
+}
+
+fn push(list, elem) {
+    let size = len(list);
+    // create new list of length: size + 1
+    let result = [](size + 1);
+
+    let i = 0;
+    while (i < size) {
+        result[i] = list[i];
+        i = i + 1;
+    }
+
+    result[size] = elem;
+    return result;
+}
+```
+Running `./type-check`:
+
+push {'a}: (['a], 'a) -> ['a]
+
+As described in English, `push` is a function that takes as arguments a list containing elements 
+of type `'a` and an element of type `'a` and returns a list containing elements of type `'a`.
+
+Running `./execute`:
+
+[1, 2, 3, 4]
+[Hello, World, !!]
+
+More examples can be found in the `tests` directory.
 
 ### Getting Started
 
@@ -69,3 +117,13 @@ with the filepath provided as an argument. To execute your program using the pro
 ```bash
 ./execute main.rs
 ```
+
+### Programming Language Features
+
+`Types:` int, bool, char, str and array
+
+`Operators:` +, -, *, /, %, ==, !=, >, >=, <, <=, [..]
+
+`Literals:` int - `5`, bool - `true`/`false`, char - `'a'`, str - `"Hello"`, array - `[1, 2, 3]`
+
+`Constructs:` let, if else, while, function calls/recursion
