@@ -50,8 +50,8 @@ type definition is inferred:
 
 To the left of the colon, we can see a set of generics specified between curly braces. Generic 
 type variables are indicated by a single quote followed by a lower case letter. Following the 
-type variable are the type class restrictions to the type, in this case the restriction `Ord` 
-is specified. Indicating the type must be orderable. There are 7 type classes in total, Plus, 
+type variable are the type class restrictions to the type. In this case the restriction `Ord` 
+is specified indicating the type must be orderable. There are 7 type classes in total, Plus, 
 Minus, Star, Slash, Percent, Eq, and Ord.
 
 To the right of the colon, we can see that the function takes two parameters of the same type `'a` and
