@@ -12,6 +12,7 @@
 #include "if_node.h"
 #include "parse_node.h"
 #include "ret_node.h"
+#include "var_decl_node.h"
 #include "while_node.h"
 
 std::shared_ptr<ASTNode> extract_stmt(ParseNode root) {
@@ -34,16 +35,16 @@ std::shared_ptr<ASTNode> extract_stmt(ParseNode root) {
         ParseNode expr_node = root.children.at(3);
         auto expr = extract_expr(expr_node);
 
-        result = make_assign(true, var, expr);
-    } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::ID, Terminal::ASSIGN, NonTerminal::expr, Terminal::SEMI}) {
+        result = make_var_decl(var, expr);
+    } else if (prod == std::vector<State> {NonTerminal::stmt, NonTerminal::expr, Terminal::ASSIGN, NonTerminal::expr, Terminal::SEMI}) {
         // extract variable declaration and assignment
-        ParseNode id = root.children.at(0);
-        std::string name = id.lexeme;
+        ParseNode lhs_node = root.children.at(0);
+        auto lhs = extract_expr(lhs_node);
 
-        ParseNode expr_node = root.children.at(2);
-        auto expr = extract_expr(expr_node);
+        ParseNode rhs_node = root.children.at(2);
+        auto rhs = extract_expr(rhs_node);
 
-        result = make_assign(false, Variable(name), expr);
+        result = make_assign(lhs, rhs);
     } else if (prod == std::vector<State> {NonTerminal::stmt, Terminal::IF, Terminal::LPAREN, NonTerminal::expr, Terminal::RPAREN, NonTerminal::stmtblock, Terminal::ELSE, NonTerminal::stmtblock}) {
         // extract if else statements
         ParseNode expr = root.children.at(2);

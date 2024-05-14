@@ -4,6 +4,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "array_access_node.h"
+#include "array_node.h"
 #include "assign_node.h"
 #include "ast_node.h"
 #include "binary_expr_node.h"
@@ -16,28 +18,36 @@
 #include "stmt_block_node.h"
 #include "unary_expr_node.h"
 #include "var_access_node.h"
+#include "var_decl_node.h"
 #include "visitor.h"
 #include "while_node.h"
 
 std::shared_ptr<ASTNode>
-ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> node) {
-    auto name = node->lhs.impl->name;
-    auto rhs = node->rhs->accept(*this);
-    if (node->declaration) {
-        Variable lhs(name);
-        scopes.top()[name] = lhs;
-        auto result = make_assign(node->declaration, lhs, rhs);
-        result->line_no = node->line_no;
-        return result;
-    } else {
-        if (!scopes.top().contains(name)) {
-            throw VariableNotFoundError(name, node->line_no);
-        }
-        auto lhs = scopes.top()[name];
-        auto result = make_assign(node->declaration, lhs, rhs);
-        result->line_no = node->line_no;
-        return result;
+ScopedVarsVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
+    auto access_target = node->access_target->accept(*this);
+    auto index = node->index->accept(*this);
+
+    return make_array_access(access_target, index);
+}
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<ArrayNode> node) {
+    std::vector<std::shared_ptr<ASTNode>> init_list;
+    for (auto init_val : node->init_list) {
+        init_list.push_back(init_val->accept(*this));
     }
+    std::shared_ptr<ASTNode> init_size;
+    if (node->init_size) {
+        init_size = node->init_size->accept(*this);
+    }
+    return make_array(init_list, init_size);
+}
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<AssignNode> node) {
+    auto lhs = node->lhs->accept(*this);
+    auto rhs = node->rhs->accept(*this);
+    return make_assign(lhs, rhs);
 }
 
 std::shared_ptr<ASTNode> ScopedVarsVisitor::visit(std::shared_ptr<FnNode> node
@@ -149,6 +159,17 @@ ScopedVarsVisitor::visit(std::shared_ptr<VarAccessNode> node) {
     }
     auto var = scope[node->var.impl->name];
     auto result = make_var_access(var);
+    result->line_no = node->line_no;
+    return result;
+}
+
+std::shared_ptr<ASTNode>
+ScopedVarsVisitor::visit(std::shared_ptr<VarDeclNode> node) {
+    auto name = node->var.impl->name;
+    auto rhs = node->rhs->accept(*this);
+    Variable var(name);
+    scopes.top()[name] = var;
+    auto result = make_var_decl(var, rhs);
     result->line_no = node->line_no;
     return result;
 }

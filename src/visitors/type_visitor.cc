@@ -5,18 +5,56 @@
 #include <iostream>
 #include <memory>
 
+#include "array_access_node.h"
 #include "binary_expr_node.h"
 #include "fn_node.h"
 #include "lang_type.h"
 #include "unary_expr_node.h"
 #include "unreachable_error.h"
+#include "var_decl_node.h"
 #include "visitor.h"
 
-PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
-    auto lhs_type = node->lhs.impl->ptr_ltype;
-    if (node->declaration) {
-        ltg.add_type(lhs_type);
+PtrLType TypeVisitor::visit(std::shared_ptr<ArrayAccessNode> node) {
+    auto access_target = node->access_target->accept(*this);
+    auto index = node->index->accept(*this);
+
+    auto int_type = make_lt(LPrim::Int);
+    ltg.add_type(int_type);
+    ltg.union_types(index, int_type);
+
+    if (!std::holds_alternative<LArray>(**access_target)) {
+        auto elem_type = make_lt(LGeneric {});
+        ltg.add_type(elem_type);
+        auto arr_type = make_lt(LArray {elem_type});
+        ltg.add_type(arr_type);
+        ltg.union_types(access_target, arr_type);
     }
+
+    return std::get<LArray>(**access_target).ltype;
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<ArrayNode> node) {
+    auto array_elem_type = make_lt(LGeneric {});
+    ltg.add_type(array_elem_type);
+    for (auto elem : node->init_list) {
+        auto elem_type = elem->accept(*this);
+        ltg.union_types(array_elem_type, elem_type);
+    }
+
+    if (node->init_size) {
+        auto size_type = node->init_size->accept(*this);
+
+        auto int_type = make_lt(LPrim::Int);
+        ltg.add_type(int_type);
+        ltg.union_types(size_type, int_type);
+    }
+
+    auto array_type = make_lt(LArray {array_elem_type});
+    return ltg.add_type(array_type);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<AssignNode> node) {
+    auto lhs_type = node->lhs->accept(*this);
     auto rhs_type = node->rhs->accept(*this);
     ltg.union_types(lhs_type, rhs_type);
     return make_lt(LPrim::Invalid);
@@ -158,6 +196,14 @@ PtrLType TypeVisitor::visit(std::shared_ptr<UnaryExprNode> node) {
 
     std::cerr << "UnaryExpr error" << std::endl;
     exit(1);
+}
+
+PtrLType TypeVisitor::visit(std::shared_ptr<VarDeclNode> node) {
+    auto var_type = node->var.impl->ptr_ltype;
+    ltg.add_type(var_type);
+    auto rhs_type = node->rhs->accept(*this);
+    ltg.union_types(var_type, rhs_type);
+    return make_lt(LPrim::Invalid);
 }
 
 PtrLType TypeVisitor::visit(std::shared_ptr<VarAccessNode> node) {

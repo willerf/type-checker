@@ -21,6 +21,10 @@ std::string state::to_string(Terminal terminal) {
             return "LBRACE";
         case Terminal::RBRACE:
             return "RBRACE";
+        case Terminal::LBRACKET:
+            return "LBRACKET";
+        case Terminal::RBRACKET:
+            return "RBRACKET";
         case Terminal::COMMA:
             return "COMMA";
         case Terminal::TRUE:
