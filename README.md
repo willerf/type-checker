@@ -92,7 +92,7 @@ of type `'a` and an element of type `'a` and returns an array containing element
 
 Running `./execute`:
 
-```bash
+```
 [1, 2, 3, 4]
 [Hello, World, !!]
 ```
