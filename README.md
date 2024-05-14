@@ -2,7 +2,9 @@
 
 - [About](https://github.com/willerf/type-checker#about)
 - [Understanding Outputs](https://github.com/willerf/type-checker#understanding-outputs)
-- [Complete Example](https://github.com/willerf/type-checker#complete-example)
+  - [Concrete Types Example](https://github.com/willerf/type-checker#concrete-types-example)
+  - [Generic Types Example](https://github.com/willerf/type-checker#generic-types-example)
+  - [Complete Example](https://github.com/willerf/type-checker#complete-example)
 - [Getting Started](https://github.com/willerf/type-checker#getting-started)
   - [Install & Build](https://github.com/willerf/type-checker#install--build)
   - [User Guide](https://github.com/willerf/type-checker#user-guide)
@@ -15,7 +17,8 @@ programmer cannot specify any types, all of them are inferred. Since all functio
 form, a single implementation could be called by multiple sets of arguments of varying types.
 
 ### Understanding Outputs
-Consider the following example:
+#### Concrete Types Example
+Consider the following example.
 ```rs
 fn increment(x) {
     return x + 1;
@@ -29,7 +32,8 @@ The above type definition can be interpreted as follows:
 - To the left of the arrow is the list of parameter types, in this case `(int)`
 - To the right of the arrow is the return type, in this case it is also `int`
 
-Let us consider an example using generic types:
+#### Generic Types Example
+Let us consider an example using generic types.
 ```rs
 fn max(x, y) {
     if (x > y) {
@@ -55,9 +59,8 @@ Minus, Star, Slash, Percent, Eq, and Ord.
 To the right of the colon, we can see that the function takes two parameters of the same type `'a` and
 also returns a value of type `'a`.
 
-### Complete Example
+#### Complete Example
 Consider the following function that implements and utilizes a `push` function.
-
 ```rs
 fn main() {
     let arr1 = [1, 2, 3];
@@ -91,9 +94,10 @@ of type `'a` and an element of type `'a` and returns an array containing element
 
 Running `./execute`:
 
+```bash
 [1, 2, 3, 4]
-
 [Hello, World, !!]
+```
 
 More examples can be found in the `tests` directory.
 
