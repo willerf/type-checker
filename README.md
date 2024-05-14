@@ -54,8 +54,8 @@ type variable are the type class restrictions to the type. In this case the rest
 is specified indicating the type must be orderable. There are 7 type classes in total, Plus, 
 Minus, Star, Slash, Percent, Eq, and Ord.
 
-To the right of the colon, we can see that the function takes two parameters of the same type `'a` and
-also returns a value of type `'a`.
+To the right of the colon, we can see that the function takes two parameters of the same type 
+`('a, 'a)` and returns a value of type `'a`.
 
 #### Complete Example
 Consider the following function that implements and utilizes a `push` function.
