@@ -29,7 +29,7 @@ fn matrix_multiply(a, b, init_val) {
             result[i][j] = init_val;
             let k = 0;
             while (k < cols_a) {
-                result[i][j] = result[i][j] + (a[i][k] * b[k][j]);
+                result[i][j] = result[i][j] + a[i][k] * b[k][j];
                 k = k + 1;
             }
             j = j + 1;

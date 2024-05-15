@@ -41,7 +41,7 @@ fn insertion_sort(arr) {
     while (i < n) {
         let key = arr[i];
         let j = i - 1;
-        while ((j >= 0) && (arr[j] > key)) {
+        while (j >= 0 && arr[j] > key) {
             arr[j + 1] = arr[j];
             j = j - 1;
         }
@@ -83,7 +83,7 @@ fn merge(arr1, arr2) {
 
     let i = 0;
     let j = 0;
-    while ((i + j) < (n + m)) {
+    while (i + j < n + m) {
         let k = i + j;
         if (i >= n) {
             result[k] = arr2[j];

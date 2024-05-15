@@ -12,7 +12,7 @@ fn generate_pascal_triangle(n) {
         triangle[i] = [](i + 1);
         let j = 0;
         while (j <= i) {
-            if ((j == 0) || (j == i)) {
+            if (j == 0 || j == i) {
                 triangle[i][j] = 1;
             } else {
                 triangle[i][j] = triangle[i - 1][j - 1] + triangle[i - 1][j];
