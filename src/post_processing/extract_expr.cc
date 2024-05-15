@@ -96,7 +96,7 @@ std::shared_ptr<ASTNode> extract_expr(ParseNode root) {
         auto args = extract_optargs(optargs);
 
         result = make_call(name, args);
-    } else if (prod == std::vector<State> {NonTerminal::p8, NonTerminal::expr, Terminal::LBRACKET, NonTerminal::expr, Terminal::RBRACKET}) {
+    } else if (prod == std::vector<State> {NonTerminal::p8, NonTerminal::p8, Terminal::LBRACKET, NonTerminal::expr, Terminal::RBRACKET}) {
         ParseNode access_target_node = root.children.at(0);
         auto access_target = extract_expr(access_target_node);
 
